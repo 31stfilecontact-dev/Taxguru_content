@@ -8,6 +8,7 @@ import {
   CreateGeminiConversationBody,
   SendGeminiMessageBody,
   SummarizeArticlesBody,
+  GeneratePostBody,
 } from "@workspace/api-zod";
 
 const router = Router();
@@ -136,6 +137,80 @@ router.post("/gemini/conversations/:id/messages", async (req, res) => {
 
   res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
   res.end();
+});
+
+router.post("/gemini/generate-post", async (req, res) => {
+  const parsed = GeneratePostBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid request body" });
+    return;
+  }
+
+  const { article, firmInsight } = parsed.data;
+
+  const firmPerspectiveInstruction = firmInsight?.trim()
+    ? `For the firmPerspective field, use EXACTLY this text verbatim (do not alter or paraphrase it): ${firmInsight}`
+    : `For the firmPerspective field, write 2 concise paragraphs of expert perspective on how this regulatory change specifically impacts corporate taxation, statutory audits, or financial reporting for Indian businesses and CFOs.`;
+
+  const prompt = `You are a senior analyst at 31st File, a leading tax and compliance advisory firm in India.
+Analyze this regulatory update and return ONLY a valid JSON object — no markdown, no code blocks, just raw JSON.
+
+Article Title: ${article.title}
+Category: ${article.category}
+Date: ${article.date}
+Excerpt: ${article.excerpt}
+
+${firmPerspectiveInstruction}
+
+Return a JSON object with exactly these fields:
+{
+  "title": "A punchy, professional editorial headline (distinct from the source article title)",
+  "summaryOfFacts": "2-3 paragraphs explaining the core regulatory facts clearly for Indian business owners",
+  "keyTakeaways": ["Actionable point 1 for tax practitioners", "Actionable point 2", "Actionable point 3"],
+  "firmPerspective": "as instructed above"
+}`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: {
+        maxOutputTokens: 8192,
+        responseMimeType: "application/json",
+      },
+    });
+
+    const text = response.text ?? "";
+
+    let postData: {
+      title: string;
+      summaryOfFacts: string;
+      keyTakeaways: string[];
+      firmPerspective: string;
+    };
+
+    try {
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      postData = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+    } catch {
+      req.log.error({ text }, "Failed to parse Gemini JSON response");
+      res.status(500).json({ error: "AI returned invalid format" });
+      return;
+    }
+
+    res.json({
+      title: postData.title,
+      summaryOfFacts: postData.summaryOfFacts,
+      keyTakeaways: postData.keyTakeaways,
+      firmPerspective: postData.firmPerspective,
+      articleCategory: article.category,
+      articleDate: article.date,
+      articleUrl: article.url,
+    });
+  } catch (err) {
+    req.log.error({ err }, "Failed to generate editorial post");
+    res.status(500).json({ error: "Generation failed" });
+  }
 });
 
 router.post("/gemini/summarize", async (req, res) => {

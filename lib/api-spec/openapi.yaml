@@ -194,6 +194,30 @@ paths:
           description: SSE stream of assistant response chunks
           content:
             text/event-stream: {}
+  /gemini/generate-post:
+    post:
+      operationId: generatePost
+      tags: [gemini]
+      summary: Generate a Day 3 editorial post from a staged article
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeneratePostInput"
+      responses:
+        "200":
+          description: Generated editorial post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedPost"
+        "500":
+          description: Generation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
   /gemini/summarize:
     post:
       operationId: summarizeArticles
@@ -377,3 +401,40 @@ components:
             $ref: "#/components/schemas/Article"
       required:
         - articles
+    GeneratePostInput:
+      type: object
+      properties:
+        article:
+          $ref: "#/components/schemas/Article"
+        firmInsight:
+          type: string
+          description: Optional custom firm perspective to inject into the prompt
+      required:
+        - article
+    GeneratedPost:
+      type: object
+      properties:
+        title:
+          type: string
+        summaryOfFacts:
+          type: string
+        keyTakeaways:
+          type: array
+          items:
+            type: string
+        firmPerspective:
+          type: string
+        articleCategory:
+          type: string
+        articleDate:
+          type: string
+        articleUrl:
+          type: string
+      required:
+        - title
+        - summaryOfFacts
+        - keyTakeaways
+        - firmPerspective
+        - articleCategory
+        - articleDate
+        - articleUrl

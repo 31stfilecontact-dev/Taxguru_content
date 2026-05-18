@@ -137,6 +137,32 @@ export const SendGeminiMessageBody = zod.object({
 
 
 /**
+ * @summary Generate a Day 3 editorial post from a staged article
+ */
+export const GeneratePostBody = zod.object({
+  "article": zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "url": zod.string().url(),
+  "date": zod.string(),
+  "category": zod.string(),
+  "excerpt": zod.string()
+}),
+  "firmInsight": zod.string().optional().describe('Optional custom firm perspective to inject into the prompt')
+})
+
+export const GeneratePostResponse = zod.object({
+  "title": zod.string(),
+  "summaryOfFacts": zod.string(),
+  "keyTakeaways": zod.array(zod.string()),
+  "firmPerspective": zod.string(),
+  "articleCategory": zod.string(),
+  "articleDate": zod.string(),
+  "articleUrl": zod.string()
+})
+
+
+/**
  * @summary Summarize a batch of staged articles
  */
 export const SummarizeArticlesBody = zod.object({

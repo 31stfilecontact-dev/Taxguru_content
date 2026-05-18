@@ -29,6 +29,8 @@ import type {
   GeminiError,
   GeminiMessage,
   GeminiMessageInput,
+  GeneratePostInput,
+  GeneratedPost,
   GetArticlesParams,
   GetArticlesSummaryParams,
   HealthStatus,
@@ -737,6 +739,77 @@ export const useSendGeminiMessage = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getSendGeminiMessageMutationOptions(options));
+    }
+
+export const getGeneratePostUrl = () => {
+
+
+
+
+  return `/api/gemini/generate-post`
+}
+
+/**
+ * @summary Generate a Day 3 editorial post from a staged article
+ */
+export const generatePost = async (generatePostInput: GeneratePostInput, options?: RequestInit): Promise<GeneratedPost> => {
+
+  return customFetch<GeneratedPost>(getGeneratePostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      generatePostInput,)
+  }
+);}
+
+
+
+
+export const getGeneratePostMutationOptions = <TError = ErrorType<GeminiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generatePost>>, TError,{data: BodyType<GeneratePostInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generatePost>>, TError,{data: BodyType<GeneratePostInput>}, TContext> => {
+
+const mutationKey = ['generatePost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generatePost>>, {data: BodyType<GeneratePostInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  generatePost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GeneratePostMutationResult = NonNullable<Awaited<ReturnType<typeof generatePost>>>
+    export type GeneratePostMutationBody = BodyType<GeneratePostInput>
+    export type GeneratePostMutationError = ErrorType<GeminiError>
+
+    /**
+ * @summary Generate a Day 3 editorial post from a staged article
+ */
+export const useGeneratePost = <TError = ErrorType<GeminiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generatePost>>, TError,{data: BodyType<GeneratePostInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generatePost>>,
+        TError,
+        {data: BodyType<GeneratePostInput>},
+        TContext
+      > => {
+      return useMutation(getGeneratePostMutationOptions(options));
     }
 
 export const getSummarizeArticlesUrl = () => {

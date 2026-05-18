@@ -1,16 +1,21 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Loader2, Search, Database, ExternalLink, Plus, RefreshCw, AlertCircle } from "lucide-react";
+import { Loader2, Search, Database, RefreshCw, AlertCircle } from "lucide-react";
 import { useGetArticles, useGetArticlesSummary, getGetArticlesQueryKey, getGetArticlesSummaryQueryKey } from "@workspace/api-client-react";
-import type { Article } from "@workspace/api-client-react";
+import type { Article, GeneratedPost } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import ArticleCard from "@/components/article-card";
 import QueueSidebar from "@/components/queue-sidebar";
 import CategoryChips from "@/components/category-chips";
+import PostOutputView from "@/components/post-output-view";
+
+type View = "feed" | "generating" | "output";
 
 export default function Dashboard() {
   const [date, setDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [stagedArticles, setStagedArticles] = useState<Article[]>([]);
+  const [view, setView] = useState<View>("feed");
+  const [generatedPost, setGeneratedPost] = useState<GeneratedPost | null>(null);
   const { toast } = useToast();
 
   const { data: articles, isLoading, refetch, isFetching } = useGetArticles(
@@ -40,7 +45,7 @@ export default function Dashboard() {
     if (stagedArticles.some((a) => a.id === article.id)) {
       toast({
         title: "Already in queue",
-        description: "This article is already marked for summarization.",
+        description: "This article is already staged.",
       });
       return;
     }
@@ -51,7 +56,23 @@ export default function Dashboard() {
     setStagedArticles((prev) => prev.filter((a) => a.id !== id));
   };
 
+  const handlePostGenerated = (post: GeneratedPost) => {
+    setGeneratedPost(post);
+    setView("output");
+  };
+
   const isLoadingData = isLoading || isFetching || isFetchingSummary;
+
+  if (view === "output" && generatedPost) {
+    return (
+      <div className="flex h-screen w-full overflow-hidden bg-background text-foreground font-sans">
+        <PostOutputView
+          post={generatedPost}
+          onBack={() => setView("feed")}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground font-sans">
@@ -79,12 +100,14 @@ export default function Dashboard() {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                data-testid="input-date"
                 className="bg-transparent border-none text-sm font-mono focus:outline-none focus:ring-0 w-[130px]"
               />
             </div>
             <button
               onClick={handleGatherData}
               disabled={isLoadingData}
+              data-testid="button-gather-data"
               className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoadingData ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
@@ -135,9 +158,9 @@ export default function Dashboard() {
           {articles && !isLoadingData && articles.length > 0 && (
             <div className="space-y-4">
               {articles.map((article) => (
-                <ArticleCard 
-                  key={article.id} 
-                  article={article} 
+                <ArticleCard
+                  key={article.id}
+                  article={article}
                   onAddToQueue={() => handleAddToQueue(article)}
                   isInQueue={stagedArticles.some(a => a.id === article.id)}
                 />
@@ -148,9 +171,10 @@ export default function Dashboard() {
       </main>
 
       {/* Sidebar Staging Queue */}
-      <QueueSidebar 
-        articles={stagedArticles} 
-        onRemove={handleRemoveFromQueue} 
+      <QueueSidebar
+        articles={stagedArticles}
+        onRemove={handleRemoveFromQueue}
+        onPostGenerated={handlePostGenerated}
       />
     </div>
   );

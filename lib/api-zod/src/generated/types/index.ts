@@ -18,6 +18,8 @@ export * from './geminiImageInput';
 export * from './geminiImageOutput';
 export * from './geminiMessage';
 export * from './geminiMessageInput';
+export * from './generatedPost';
+export * from './generatePostInput';
 export * from './getArticlesParams';
 export * from './getArticlesSummaryParams';
 export * from './healthStatus';

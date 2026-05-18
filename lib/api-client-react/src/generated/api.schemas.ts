@@ -78,6 +78,22 @@ export interface SummarizeArticlesInput {
   articles: Article[];
 }
 
+export interface GeneratePostInput {
+  article: Article;
+  /** Optional custom firm perspective to inject into the prompt */
+  firmInsight?: string;
+}
+
+export interface GeneratedPost {
+  title: string;
+  summaryOfFacts: string;
+  keyTakeaways: string[];
+  firmPerspective: string;
+  articleCategory: string;
+  articleDate: string;
+  articleUrl: string;
+}
+
 export type GetArticlesParams = {
 /**
  * Filter articles by date (YYYY-MM-DD format)
