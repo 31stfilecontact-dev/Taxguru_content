@@ -6,6 +6,9 @@ import {
   Image as ImageIcon,
   Share2,
   Loader2,
+  Link2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 const WHITE_LOGO = "https://lottie.host/7e9f0f76-045f-4084-9d34-b576660d1848/vgHf4GtXbQ.png";
@@ -19,6 +22,7 @@ interface PostOutputViewProps {
 export default function PostOutputView({ post, onBack }: PostOutputViewProps) {
   const postRef = useRef<HTMLDivElement>(null);
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [showWebhook, setShowWebhook] = useState(false);
   const [exporting, setExporting] = useState<"jpeg" | "pdf" | null>(null);
   const [pushing, setPushing] = useState(false);
 
@@ -65,7 +69,7 @@ export default function PostOutputView({ post, onBack }: PostOutputViewProps) {
 
   const postToSocials = async () => {
     if (!webhookUrl.trim()) {
-      alert("Please enter your Make.com or Zapier webhook URL first.");
+      setShowWebhook(true);
       return;
     }
     setPushing(true);
@@ -84,71 +88,98 @@ export default function PostOutputView({ post, onBack }: PostOutputViewProps) {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-background">
-      {/* Top control bar */}
-      <div className="flex-none border-b border-border bg-card px-6 py-3 flex items-center justify-between gap-4">
-        <button
-          onClick={onBack}
-          data-testid="button-back-to-feed"
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Feed
-        </button>
+    <div className="flex flex-col h-full w-full overflow-hidden bg-background">
 
-        <div className="flex items-center gap-3">
-          {/* Webhook URL input */}
-          <input
-            type="url"
-            placeholder="Make.com / Zapier webhook URL"
-            value={webhookUrl}
-            onChange={(e) => setWebhookUrl(e.target.value)}
-            data-testid="input-webhook-url"
-            className="hidden sm:block text-xs bg-background border border-border rounded-md px-3 py-1.5 w-72 focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
-          />
-
+      {/* ── Top bar ── */}
+      <div className="flex-none border-b border-border bg-card">
+        {/* Row 1: back + action buttons */}
+        <div className="flex items-center justify-between gap-2 px-4 py-2.5">
           <button
-            onClick={downloadAsJPEG}
-            disabled={exporting !== null}
-            data-testid="button-download-jpeg"
-            className="flex items-center gap-2 text-sm bg-card border border-border hover:bg-muted text-foreground px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
+            onClick={onBack}
+            data-testid="button-back-to-feed"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0"
           >
-            {exporting === "jpeg" ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-            JPEG
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Back to Feed</span>
+            <span className="sm:hidden">Back</span>
           </button>
 
-          <button
-            onClick={downloadAsPDF}
-            disabled={exporting !== null}
-            data-testid="button-download-pdf"
-            className="flex items-center gap-2 text-sm bg-card border border-border hover:bg-muted text-foreground px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
-          >
-            {exporting === "pdf" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            PDF
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={downloadAsJPEG}
+              disabled={exporting !== null}
+              data-testid="button-download-jpeg"
+              className="flex items-center gap-1.5 text-sm bg-card border border-border hover:bg-muted text-foreground px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
+            >
+              {exporting === "jpeg"
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <ImageIcon className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">JPEG</span>
+            </button>
 
-          <button
-            onClick={postToSocials}
-            disabled={pushing}
-            data-testid="button-post-socials"
-            className="flex items-center gap-2 text-sm bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded-md font-medium transition-colors disabled:opacity-50"
-          >
-            {pushing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
-            Post to Socials
-          </button>
+            <button
+              onClick={downloadAsPDF}
+              disabled={exporting !== null}
+              data-testid="button-download-pdf"
+              className="flex items-center gap-1.5 text-sm bg-card border border-border hover:bg-muted text-foreground px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
+            >
+              {exporting === "pdf"
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Download className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">PDF</span>
+            </button>
+
+            <button
+              onClick={postToSocials}
+              disabled={pushing}
+              data-testid="button-post-socials"
+              className="flex items-center gap-1.5 text-sm bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md font-medium transition-colors disabled:opacity-50"
+            >
+              {pushing
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Share2 className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">Post to Socials</span>
+              <span className="sm:hidden">Share</span>
+            </button>
+
+            {/* Webhook toggle button */}
+            <button
+              onClick={() => setShowWebhook((v) => !v)}
+              data-testid="button-toggle-webhook"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md px-2 py-1.5 transition-colors"
+              title="Configure webhook"
+            >
+              <Link2 className="w-3.5 h-3.5" />
+              {showWebhook ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+          </div>
         </div>
+
+        {/* Row 2: Webhook URL (collapsible) */}
+        {showWebhook && (
+          <div className="px-4 pb-3 flex items-center gap-2 border-t border-border/50 pt-2.5 animate-in slide-in-from-top-1 duration-150">
+            <Link2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <input
+              type="url"
+              placeholder="Paste your Make.com or Zapier webhook URL here..."
+              value={webhookUrl}
+              onChange={(e) => setWebhookUrl(e.target.value)}
+              data-testid="input-webhook-url"
+              className="flex-1 text-xs bg-background border border-border rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground/60"
+            />
+          </div>
+        )}
       </div>
 
-      {/* Scrollable preview area */}
-      <div className="flex-1 overflow-y-auto bg-slate-700 p-8">
-        {/* The printable card */}
-        <div ref={postRef} style={{ backgroundColor: "#4682B4", padding: "40px 24px", fontFamily: "'Inter', sans-serif" }}>
+      {/* ── Post preview ── */}
+      <div className="flex-1 overflow-y-auto bg-slate-700 px-3 py-6 sm:p-8">
+        <div ref={postRef} style={{ backgroundColor: "#4682B4", padding: "24px 16px", fontFamily: "'Inter', sans-serif" }}>
           <div style={{
             maxWidth: 680,
             margin: "0 auto",
             background: "linear-gradient(145deg, #1E293B 0%, #0F172A 100%)",
-            borderRadius: 20,
-            padding: "48px",
+            borderRadius: 16,
+            padding: "32px 24px",
             border: "1px solid rgba(255,255,255,0.08)",
             boxShadow: "0 24px 48px rgba(0,0,0,0.25)",
           }}>
@@ -158,90 +189,69 @@ export default function PostOutputView({ post, onBack }: PostOutputViewProps) {
               src={WHITE_LOGO}
               alt="31st File"
               crossOrigin="anonymous"
-              style={{ height: 44, marginBottom: 32, objectFit: "contain" }}
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).style.display = "none";
-              }}
+              style={{ height: 36, marginBottom: 24, objectFit: "contain" }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
             />
 
             {/* Label row */}
             <div style={{
               display: "flex",
+              flexWrap: "wrap",
               alignItems: "center",
-              gap: 12,
+              gap: "8px 12px",
               color: "#7DD3FC",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 700,
-              letterSpacing: "0.15em",
-              marginBottom: 16,
+              letterSpacing: "0.12em",
+              marginBottom: 14,
               textTransform: "uppercase",
             }}>
-              Day 3 Update
+              <span>Day 3 Update</span>
               <span style={{ color: "#334155" }}>|</span>
-              <span style={{ color: "#94A3B8", letterSpacing: "0.05em" }}>{post.articleDate}</span>
+              <span style={{ color: "#94A3B8" }}>{post.articleDate}</span>
               <span style={{ color: "#334155" }}>|</span>
-              <span style={{ color: "#60A5FA", letterSpacing: "0.05em" }}>{post.articleCategory}</span>
+              <span style={{ color: "#60A5FA" }}>{post.articleCategory}</span>
             </div>
 
             {/* Headline */}
             <h1 style={{
               fontFamily: "Georgia, 'Times New Roman', serif",
-              fontSize: 34,
+              fontSize: "clamp(22px, 4vw, 32px)",
               fontWeight: 600,
-              margin: "0 0 36px 0",
+              margin: "0 0 28px 0",
               color: "#FFFFFF",
-              lineHeight: 1.25,
+              lineHeight: 1.3,
             }}>
               {post.title}
             </h1>
 
             {/* Summary of Facts */}
-            <div style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              borderRadius: 16,
-              padding: "32px",
-              marginBottom: 20,
-            }}>
-              <h3 style={{ margin: "0 0 14px 0", fontSize: 13, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "24px", marginBottom: 16 }}>
+              <h3 style={{ margin: "0 0 12px 0", fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.12em" }}>
                 Summary of Facts
               </h3>
-              <p style={{ color: "#CBD5E1", fontSize: 15, lineHeight: 1.8, margin: 0, whiteSpace: "pre-line" }}>
+              <p style={{ color: "#CBD5E1", fontSize: 14, lineHeight: 1.8, margin: 0, whiteSpace: "pre-line" }}>
                 {post.summaryOfFacts}
               </p>
             </div>
 
             {/* Key Takeaways */}
-            <div style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              borderRadius: 16,
-              padding: "32px",
-              marginBottom: 20,
-            }}>
-              <h3 style={{ margin: "0 0 20px 0", fontSize: 13, fontWeight: 700, color: "#FCD34D", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "24px", marginBottom: 16 }}>
+              <h3 style={{ margin: "0 0 16px 0", fontSize: 11, fontWeight: 700, color: "#FCD34D", textTransform: "uppercase", letterSpacing: "0.12em" }}>
                 Key Takeaways
               </h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {post.keyTakeaways.map((point, i) => (
-                  <div key={i} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+                  <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                     <span style={{
-                      minWidth: 28,
-                      height: 28,
-                      background: "#1E293B",
-                      border: "1px solid #334155",
-                      borderRadius: 8,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#FCD34D",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      flexShrink: 0,
+                      minWidth: 26, height: 26,
+                      background: "#1E293B", border: "1px solid #334155", borderRadius: 7,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      color: "#FCD34D", fontSize: 11, fontWeight: 700, flexShrink: 0,
                     }}>
                       {i + 1}
                     </span>
-                    <p style={{ color: "#CBD5E1", margin: 0, fontSize: 15, lineHeight: 1.7 }}>{point}</p>
+                    <p style={{ color: "#CBD5E1", margin: 0, fontSize: 14, lineHeight: 1.7 }}>{point}</p>
                   </div>
                 ))}
               </div>
@@ -251,73 +261,51 @@ export default function PostOutputView({ post, onBack }: PostOutputViewProps) {
             <div style={{
               backgroundColor: "#F8FAFC",
               border: "1px solid #E2E8F0",
-              borderLeft: "5px solid #2563EB",
-              borderRadius: 12,
-              padding: "32px",
-              marginBottom: 20,
+              borderLeft: "4px solid #2563EB",
+              borderRadius: 10,
+              padding: "24px",
+              marginBottom: 16,
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                 <img
                   src={BLUE_LOGO}
                   alt="31st File"
                   crossOrigin="anonymous"
-                  style={{ height: 24, objectFit: "contain" }}
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = "none";
-                  }}
+                  style={{ height: 22, objectFit: "contain" }}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                 />
-                <h3 style={{ margin: 0, color: "#1E40AF", fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                <h3 style={{ margin: 0, color: "#1E40AF", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   Firm Perspective
                 </h3>
               </div>
-              <p style={{ color: "#334155", fontSize: 15, fontWeight: 500, lineHeight: 1.8, margin: 0, whiteSpace: "pre-line" }}>
+              <p style={{ color: "#334155", fontSize: 14, fontWeight: 500, lineHeight: 1.8, margin: 0, whiteSpace: "pre-line" }}>
                 {post.firmPerspective}
               </p>
             </div>
 
-            {/* CTA / Footer */}
-            <div style={{
-              marginTop: 40,
-              paddingTop: 36,
-              borderTop: "1px solid rgba(255,255,255,0.08)",
-              textAlign: "center",
-            }}>
-              <h4 style={{ color: "#F8FAFC", fontSize: 18, margin: "0 0 8px 0", fontFamily: "Georgia, serif" }}>
+            {/* CTA footer */}
+            <div style={{ marginTop: 32, paddingTop: 28, borderTop: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
+              <h4 style={{ color: "#F8FAFC", fontSize: 16, margin: "0 0 6px 0", fontFamily: "Georgia, serif" }}>
                 Simplify Your Compliance Journey
               </h4>
-              <p style={{ color: "#94A3B8", fontSize: 13, margin: "0 0 24px 0" }}>
-                Join leading founders receiving curated regulatory insights directly to their inbox.
+              <p style={{ color: "#94A3B8", fontSize: 12, margin: "0 0 20px 0" }}>
+                Join leading founders receiving curated regulatory insights.
               </p>
-
               <div style={{
-                display: "inline-block",
-                background: "#FFFFFF",
-                color: "#0F172A",
-                padding: "12px 28px",
-                borderRadius: 10,
-                fontWeight: 700,
-                fontSize: 14,
-                marginBottom: 28,
+                display: "inline-block", background: "#FFFFFF", color: "#0F172A",
+                padding: "10px 24px", borderRadius: 8, fontWeight: 700, fontSize: 13, marginBottom: 24,
               }}>
                 Subscribe to Regulatory Briefs
               </div>
-
-              <div style={{
-                background: "rgba(15,23,42,0.5)",
-                borderRadius: 12,
-                padding: "20px 24px",
-              }}>
-                <p style={{ color: "#CBD5E1", fontSize: 13, margin: "0 0 12px 0" }}>
-                  Continue the conversation and explore our advisory services:
-                </p>
-                <div style={{ display: "flex", justifyContent: "center", gap: 24 }}>
-                  <a href={post.articleUrl} target="_blank" rel="noreferrer" style={{ color: "#7DD3FC", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+              <div style={{ background: "rgba(15,23,42,0.5)", borderRadius: 10, padding: "16px 20px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 20px" }}>
+                  <a href={post.articleUrl} target="_blank" rel="noreferrer" style={{ color: "#7DD3FC", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
                     Source Article
                   </a>
                   <span style={{ color: "#334155" }}>•</span>
-                  <span style={{ color: "#7DD3FC", fontSize: 13, fontWeight: 500 }}>31stFile.com</span>
+                  <span style={{ color: "#7DD3FC", fontSize: 12, fontWeight: 500 }}>31stFile.com</span>
                   <span style={{ color: "#334155" }}>•</span>
-                  <span style={{ color: "#7DD3FC", fontSize: 13, fontWeight: 500 }}>LinkedIn</span>
+                  <span style={{ color: "#7DD3FC", fontSize: 12, fontWeight: 500 }}>LinkedIn</span>
                 </div>
               </div>
             </div>

@@ -1,22 +1,29 @@
 import { useState } from "react";
 import type { Article, GeneratedPost } from "@workspace/api-client-react";
-import { X, Zap, FileText, Loader2, Pencil } from "lucide-react";
+import { X, Zap, FileText, Loader2, Pencil, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface QueueSidebarProps {
   articles: Article[];
   onRemove: (id: string) => void;
   onPostGenerated: (post: GeneratedPost) => void;
+  isMobile?: boolean;
+  onClose?: () => void;
 }
 
-export default function QueueSidebar({ articles, onRemove, onPostGenerated }: QueueSidebarProps) {
+export default function QueueSidebar({
+  articles,
+  onRemove,
+  onPostGenerated,
+  isMobile = false,
+  onClose,
+}: QueueSidebarProps) {
   const [firmInsight, setFirmInsight] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (articles.length === 0) return;
-
     setIsGenerating(true);
     setError(null);
 
@@ -45,29 +52,38 @@ export default function QueueSidebar({ articles, onRemove, onPostGenerated }: Qu
   };
 
   return (
-    <aside className="w-80 flex flex-col h-full bg-sidebar border-l border-sidebar-border">
+    <aside className="w-full flex flex-col bg-sidebar border-sidebar-border overflow-hidden md:border-l md:h-full">
       {/* Header */}
-      <div className="flex-none p-4 border-b border-sidebar-border">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="font-semibold text-sm flex items-center gap-2">
+      <div className="flex-none px-4 pt-3 pb-3 border-b border-sidebar-border">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-primary" />
-            Staging Queue
-          </h2>
-          <Badge variant="secondary" className="bg-primary/20 text-primary font-mono text-xs rounded-sm">
-            {articles.length} items
-          </Badge>
+            <h2 className="font-semibold text-sm">Staging Queue</h2>
+            <Badge variant="secondary" className="bg-primary/20 text-primary font-mono text-xs rounded-sm">
+              {articles.length}
+            </Badge>
+          </div>
+          {isMobile && onClose && (
+            <button
+              onClick={onClose}
+              data-testid="button-close-queue"
+              className="p-1 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronDown className="w-5 h-5" />
+            </button>
+          )}
         </div>
-        <p className="text-xs text-muted-foreground">
-          First article in queue is used for post generation
+        <p className="text-[11px] text-muted-foreground mt-0.5">
+          First article is used for post generation
         </p>
       </div>
 
-      {/* Queue list */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+      {/* Article list */}
+      <div className="overflow-y-auto p-4 space-y-3" style={{ maxHeight: isMobile ? "30vh" : undefined, flex: isMobile ? "0 0 auto" : "1 1 0" }}>
         {articles.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
-            <div className="w-12 h-12 border-2 border-dashed border-muted rounded-full flex items-center justify-center mb-3">
-              <PlusIcon className="w-5 h-5 text-muted-foreground" />
+          <div className="py-8 flex flex-col items-center justify-center text-center opacity-50">
+            <div className="w-10 h-10 border-2 border-dashed border-muted rounded-full flex items-center justify-center mb-2">
+              <PlusIcon className="w-4 h-4 text-muted-foreground" />
             </div>
             <p className="text-xs text-muted-foreground">Queue is empty</p>
           </div>
@@ -76,7 +92,7 @@ export default function QueueSidebar({ articles, onRemove, onPostGenerated }: Qu
             <div
               key={article.id}
               data-testid={`card-queue-${article.id}`}
-              className={`bg-card border rounded-md p-3 relative group animate-in slide-in-from-right-4 fade-in duration-200 ${
+              className={`bg-card border rounded-md p-3 relative group ${
                 idx === 0 ? "border-primary/50 ring-1 ring-primary/20" : "border-border"
               }`}
             >
@@ -88,11 +104,11 @@ export default function QueueSidebar({ articles, onRemove, onPostGenerated }: Qu
               <button
                 onClick={() => onRemove(article.id)}
                 data-testid={`button-remove-${article.id}`}
-                className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm opacity-0 group-hover:opacity-100 transition-all"
+                className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm transition-all"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
-              <div className="pr-6">
+              <div className="pr-7">
                 <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider block mb-1">
                   {article.category}
                 </span>
@@ -105,30 +121,28 @@ export default function QueueSidebar({ articles, onRemove, onPostGenerated }: Qu
         )}
       </div>
 
-      {/* Firm Insight override */}
-      <div className="flex-none px-4 pb-3 border-t border-sidebar-border pt-4">
-        <label className="flex items-center gap-1.5 text-xs font-semibold text-sky-400 mb-2">
+      {/* Firm insight + generate button */}
+      <div className="flex-none px-4 pb-5 pt-3 border-t border-sidebar-border space-y-3">
+        <label className="flex items-center gap-1.5 text-xs font-semibold text-sky-400">
           <Pencil className="w-3 h-3" />
           Custom Firm Insight (Optional)
         </label>
         <textarea
-          placeholder="Override the AI perspective. Type your specific advisory message here to inject it verbatim into the post..."
+          placeholder="Override the AI perspective. Your text will be injected verbatim..."
           value={firmInsight}
           onChange={(e) => setFirmInsight(e.target.value)}
           data-testid="textarea-firm-insight"
-          rows={4}
+          rows={isMobile ? 2 : 4}
           className="w-full text-xs bg-background border border-border rounded-md px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground/60 transition-shadow"
         />
 
-        {error && (
-          <p className="text-xs text-destructive mt-2">{error}</p>
-        )}
+        {error && <p className="text-xs text-destructive">{error}</p>}
 
         <button
           onClick={handleGenerate}
           disabled={articles.length === 0 || isGenerating}
           data-testid="button-generate-post"
-          className="mt-3 w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-md text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white py-3 rounded-md text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isGenerating ? (
             <>
