@@ -1,10 +1,11 @@
-# [Project name]
+# 31stFile Intelligence Dashboard
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+An enterprise-grade automated content curation pipeline that ingests live tax and regulatory updates from TaxGuru RSS feeds and displays them in a React dashboard, allowing users to queue articles for AI summarization.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
+- `pnpm --filter @workspace/dashboard run dev` — run the React frontend
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -19,18 +20,30 @@ _Replace the heading above with the project's name, and this line with one sente
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
+- RSS parsing: `rss-parser` (Node.js, runs in Express)
+- Frontend: React + Vite + TanStack Query + Tailwind CSS + shadcn/ui
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — OpenAPI spec (source of truth for API contracts)
+- `lib/api-client-react/src/generated/` — generated React Query hooks (do not edit)
+- `lib/api-zod/src/generated/` — generated Zod schemas (do not edit)
+- `artifacts/api-server/src/routes/articles.ts` — RSS feed fetching + articles endpoints
+- `artifacts/dashboard/src/` — React frontend
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Python Flask replaced with Node.js/Express so all code lives in the same pnpm monorepo
+- `rss-parser` fetches all 5 TaxGuru RSS feeds in parallel (`Promise.allSettled`) with graceful per-feed error handling
+- Staging queue is client-side React state only — no persistence required for this phase
+- OpenAPI-first contract: spec gates codegen which gates the typed React Query hooks
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Date-filtered article feed**: pick a date, click "Gather Data" to pull live articles from TaxGuru across 5 categories (News, Notification, Income Tax, GST, Company Law)
+- **Category summary chips**: at-a-glance breakdown of article counts per category
+- **Staging queue**: mark any article for writing queue, then process all staged summaries together
+- **Direct article access**: every card links directly to the original TaxGuru article
 
 ## User preferences
 
@@ -38,7 +51,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- RSS feeds from TaxGuru are live internet requests — response times vary (2–10s is normal for all 5 feeds)
+- If TaxGuru blocks requests, the backend returns 500; the frontend shows an error state
+- After any OpenAPI spec change, always run codegen before using updated types
 
 ## Pointers
 

@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: articles
+    description: Tax & regulatory article feeds
 paths:
   /healthz:
     get:
@@ -24,6 +26,57 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /articles:
+    get:
+      operationId: getArticles
+      tags: [articles]
+      summary: Get articles by date
+      description: Returns tax and regulatory articles from TaxGuru RSS feeds, optionally filtered by date
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: Filter articles by date (YYYY-MM-DD format)
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+            example: "2025-05-18"
+      responses:
+        "200":
+          description: List of articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Article"
+        "500":
+          description: Failed to fetch feeds
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /articles/summary:
+    get:
+      operationId: getArticlesSummary
+      tags: [articles]
+      summary: Get article counts by category
+      description: Returns a summary of article counts grouped by category for a given date
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: Filter by date (YYYY-MM-DD format)
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      responses:
+        "200":
+          description: Category summary counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArticlesSummary"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +86,61 @@ components:
           type: string
       required:
         - status
-
+    Article:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "31f_1"
+        title:
+          type: string
+          example: "New GST notification issued by CBIC"
+        url:
+          type: string
+          format: uri
+          example: "https://taxguru.in/..."
+        date:
+          type: string
+          example: "May 18, 2025"
+        category:
+          type: string
+          example: "GST"
+        excerpt:
+          type: string
+          example: "The Central Board of Indirect Taxes..."
+      required:
+        - id
+        - title
+        - url
+        - date
+        - category
+        - excerpt
+    ArticlesSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        byCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryCount"
+      required:
+        - total
+        - byCategory
+    CategoryCount:
+      type: object
+      properties:
+        category:
+          type: string
+        count:
+          type: integer
+      required:
+        - category
+        - count
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
