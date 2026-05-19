@@ -6,7 +6,7 @@ import type { Article, GeneratedPost } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import ArticleCard from "@/components/article-card";
 import QueueSidebar from "@/components/queue-sidebar";
-import CategoryChips from "@/components/category-chips";
+import CategoryFilter from "@/components/category-filter";
 import PostOutputView from "@/components/post-output-view";
 
 type View = "feed" | "output";
@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [view, setView] = useState<View>("feed");
   const [generatedPost, setGeneratedPost] = useState<GeneratedPost | null>(null);
   const [mobileQueueOpen, setMobileQueueOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { toast } = useToast();
 
   const { data: articles, isLoading, refetch, isFetching } = useGetArticles(
@@ -29,11 +30,18 @@ export default function Dashboard() {
     { query: { enabled: false, queryKey: getGetArticlesSummaryQueryKey({ date }) } }
   );
 
+  const filteredArticles = articles
+    ? activeCategory
+      ? articles.filter((a) => a.category === activeCategory)
+      : articles
+    : undefined;
+
   const handleGatherData = () => {
     if (!date) {
       toast({ title: "Date required", description: "Please select a date.", variant: "destructive" });
       return;
     }
+    setActiveCategory(null);
     refetch();
     refetchSummary();
   };
@@ -115,7 +123,13 @@ export default function Dashboard() {
 
         {/* Feed */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 pb-24 md:pb-6">
-          {summary && !isLoadingData && <CategoryChips summary={summary} />}
+          {summary && !isLoadingData && (
+            <CategoryFilter
+              summary={summary}
+              active={activeCategory}
+              onChange={setActiveCategory}
+            />
+          )}
 
           {!articles && !isLoadingData && (
             <div className="h-[360px] flex flex-col items-center justify-center text-center border border-dashed border-border rounded-lg bg-card/30 px-6">
@@ -152,9 +166,19 @@ export default function Dashboard() {
             </div>
           )}
 
-          {articles && !isLoadingData && articles.length > 0 && (
+          {filteredArticles && !isLoadingData && articles && articles.length > 0 && filteredArticles.length === 0 && (
+            <div className="h-[180px] flex flex-col items-center justify-center text-center border border-border rounded-lg bg-card/30 gap-2">
+              <AlertCircle className="w-7 h-7 text-muted-foreground opacity-60" />
+              <p className="text-sm text-muted-foreground">No articles in <span className="text-foreground font-medium">{activeCategory}</span> for this date.</p>
+              <button onClick={() => setActiveCategory(null)} className="text-xs text-primary hover:underline">
+                Clear filter
+              </button>
+            </div>
+          )}
+
+          {filteredArticles && !isLoadingData && filteredArticles.length > 0 && (
             <div className="space-y-3 md:space-y-4">
-              {articles.map((article) => (
+              {filteredArticles.map((article) => (
                 <ArticleCard
                   key={article.id}
                   article={article}
