@@ -149,8 +149,8 @@ router.post("/gemini/generate-post", async (req, res) => {
   const { article, firmInsight } = parsed.data;
 
   const firmPerspectiveInstruction = firmInsight?.trim()
-    ? `For the firmPerspective field, use EXACTLY this text verbatim (do not alter or paraphrase it): ${firmInsight}`
-    : `For the firmPerspective field, write 2 concise paragraphs of expert perspective on how this regulatory change specifically impacts corporate taxation, statutory audits, or financial reporting for Indian businesses and CFOs.`;
+    ? `For the firmPerspective field, use EXACTLY this text verbatim (do not alter or paraphrase it): "${firmInsight}"`
+    : `For the firmPerspective field, write 2 short paragraphs of 31st File's expert perspective on how this regulatory change impacts corporate taxation, statutory audits, or financial reporting for Indian founders and businesses. Speak directly to the reader.`;
 
   const prompt = `You are a senior analyst at 31st File, a leading tax and compliance advisory firm in India.
 Analyze this regulatory update and return ONLY a valid JSON object — no markdown, no code blocks, just raw JSON.
@@ -164,11 +164,21 @@ ${firmPerspectiveInstruction}
 
 Return a JSON object with exactly these fields:
 {
-  "title": "A punchy, professional editorial headline (distinct from the source article title)",
-  "summaryOfFacts": "2-3 paragraphs explaining the core regulatory facts clearly for Indian business owners",
-  "keyTakeaways": ["Actionable point 1 for tax practitioners", "Actionable point 2", "Actionable point 3"],
+  "title": "A punchy editorial headline, max 8 words, distinct from the source title",
+  "summaryOfFacts": "One single concise paragraph, max 3 sentences, covering the absolute core facts",
+  "keyTakeaways": [
+    "One short punchy sentence under 12 words",
+    "One short punchy sentence under 12 words",
+    "One short punchy sentence under 12 words"
+  ],
   "firmPerspective": "as instructed above"
-}`;
+}
+
+CRITICAL GUARDRAILS — violating any of these is a failure:
+1. TONE: Speak DIRECTLY to Indian founders and business owners (e.g. "You must ensure…", "Your business needs to…"). Do NOT write as if advising other accountants.
+2. FORBIDDEN WORD: Never use the word "client" or "clients" anywhere. Use "your business", "taxpayers", "founders", or "companies" instead.
+3. BREVITY: LinkedIn readers skim. Every word must earn its place. Cut all filler and preamble.
+4. TAKEAWAYS: Each key takeaway must be a single punchy sentence, strictly under 12 words.`;
 
   try {
     const response = await ai.models.generateContent({
