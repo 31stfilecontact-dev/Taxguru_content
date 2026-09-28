@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "preinstall": "node -e \"if (!process.env.npm_config_user_agent?.startsWith('pnpm/')) { console.error('Use pnpm instead'); process.exit(1); }\"",
-    "build": "pnpm run typecheck && pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/dashboard run build",
+    "build": "pnpm run typecheck && pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/dashboard run build && node scripts/copy-build.mjs",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
     "test:feeds": "pnpm --filter @workspace/scripts run test:feeds",
