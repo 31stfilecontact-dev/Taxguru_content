@@ -14,4 +14,6 @@ export interface GeneratedPost {
   articleCategory: string;
   articleDate: string;
   articleUrl: string;
+  hashtags?: string[];
+  linkedInPost?: string;
 }

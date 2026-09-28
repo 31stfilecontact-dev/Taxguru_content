@@ -34,6 +34,7 @@ export const GetArticlesResponseItem = zod.object({
   "url": zod.string().url(),
   "date": zod.string(),
   "category": zod.string(),
+  "source": zod.string().optional(),
   "excerpt": zod.string()
 })
 export const GetArticlesResponse = zod.array(GetArticlesResponseItem)
@@ -146,6 +147,7 @@ export const GeneratePostBody = zod.object({
   "url": zod.string().url(),
   "date": zod.string(),
   "category": zod.string(),
+  "source": zod.string().optional(),
   "excerpt": zod.string()
 }),
   "firmInsight": zod.string().optional().describe('Optional custom firm perspective to inject into the prompt')
@@ -158,7 +160,9 @@ export const GeneratePostResponse = zod.object({
   "firmPerspective": zod.string(),
   "articleCategory": zod.string(),
   "articleDate": zod.string(),
-  "articleUrl": zod.string()
+  "articleUrl": zod.string(),
+  "hashtags": zod.array(zod.string()).optional(),
+  "linkedInPost": zod.string().optional()
 })
 
 
@@ -172,6 +176,7 @@ export const SummarizeArticlesBody = zod.object({
   "url": zod.string().url(),
   "date": zod.string(),
   "category": zod.string(),
+  "source": zod.string().optional(),
   "excerpt": zod.string()
 }))
 })

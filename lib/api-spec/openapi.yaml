@@ -274,6 +274,9 @@ components:
         category:
           type: string
           example: "GST"
+        source:
+          type: string
+          example: "LiveMint"
         excerpt:
           type: string
           example: "The Central Board of Indirect Taxes..."
@@ -441,6 +444,12 @@ components:
         articleDate:
           type: string
         articleUrl:
+          type: string
+        hashtags:
+          type: array
+          items:
+            type: string
+        linkedInPost:
           type: string
       required:
         - title

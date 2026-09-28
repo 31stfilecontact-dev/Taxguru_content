@@ -10,29 +10,49 @@ interface ArticleCardProps {
 }
 
 const categoryColors: Record<string, string> = {
-  "Income Tax": "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  "GST":        "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  "Company Law":"bg-amber-500/10 text-amber-400 border-amber-500/20",
-  "Notification":"bg-purple-500/10 text-purple-400 border-purple-500/20",
+  "Financial News": "bg-sky-500/10 text-sky-400 border-sky-500/25",
+  "Case Laws":      "bg-amber-500/10 text-amber-400 border-amber-500/25",
+  "Govt Updates":   "bg-purple-500/10 text-purple-400 border-purple-500/25",
+  "CA Compliances": "bg-emerald-500/10 text-emerald-400 border-emerald-500/25",
+  // Legacy backward compatibility
+  "Income Tax":     "bg-emerald-500/10 text-emerald-400 border-emerald-500/25",
+  "GST":            "bg-emerald-500/10 text-emerald-400 border-emerald-500/25",
+  "Company Law":    "bg-amber-500/10 text-amber-400 border-amber-500/25",
+  "Notification":   "bg-purple-500/10 text-purple-400 border-purple-500/25",
+  "News":           "bg-sky-500/10 text-sky-400 border-sky-500/25",
 };
 
 export default function ArticleCard({ article, onAddToQueue, isInQueue }: ArticleCardProps) {
-  const colorClass = categoryColors[article.category] ?? "bg-slate-500/10 text-slate-400 border-slate-500/20";
+  const colorClass = categoryColors[article.category] ?? "bg-slate-500/10 text-slate-400 border-slate-500/25";
 
   return (
     <div
       data-testid={`card-article-${article.id}`}
-      className="group bg-card border border-card-border rounded-lg p-4 sm:p-5 hover:border-primary/40 active:scale-[0.99] transition-all duration-200 shadow-sm flex flex-col gap-3"
+      className={cn(
+        "group bg-card border rounded-xl p-4 sm:p-5 transition-all duration-200 shadow-sm flex flex-col gap-3 touch-manipulation",
+        isInQueue
+          ? "border-primary/50 bg-primary/[0.02] ring-1 ring-primary/20"
+          : "border-card-border hover:border-primary/40 active:scale-[0.99]"
+      )}
     >
-      {/* Top row: category badge + date */}
-      <div className="flex items-start justify-between gap-2">
-        <Badge
-          variant="outline"
-          className={cn("font-mono text-[10px] uppercase px-2 py-0.5 rounded-sm shrink-0", colorClass)}
-        >
-          {article.category}
-        </Badge>
-        <span className="text-xs font-mono text-muted-foreground text-right">Published {article.date}</span>
+      {/* Top row: category badge + source + date */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Badge
+            variant="outline"
+            className={cn("font-mono text-[10px] uppercase px-2 py-0.5 rounded-md font-semibold tracking-wide shrink-0", colorClass)}
+          >
+            {article.category}
+          </Badge>
+          {article.source && (
+            <span className="font-mono text-[10px] bg-secondary/80 text-foreground/80 border border-border px-2 py-0.5 rounded-md shrink-0 font-medium">
+              {article.source}
+            </span>
+          )}
+        </div>
+        <span className="text-[11px] font-mono text-muted-foreground ml-auto shrink-0">
+          {article.date}
+        </span>
       </div>
 
       {/* Title */}
@@ -41,18 +61,18 @@ export default function ArticleCard({ article, onAddToQueue, isInQueue }: Articl
       </h3>
 
       {/* Excerpt */}
-      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 sm:line-clamp-2">
+      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-3">
         {article.excerpt}
       </p>
 
-      {/* Action row */}
-      <div className="flex items-center justify-between gap-3 mt-1 pt-3 border-t border-border/50">
+      {/* Action row with mobile-friendly touch targets (min-h-[44px]) */}
+      <div className="flex items-center justify-between gap-2 mt-1 pt-3 border-t border-border/50">
         <a
           href={article.url}
           target="_blank"
           rel="noreferrer"
           data-testid={`link-article-${article.id}`}
-          className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors py-1"
+          className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground active:text-primary transition-colors py-2 px-1 min-h-[40px]"
         >
           <ExternalLink className="w-3.5 h-3.5 shrink-0" />
           <span>Open Article</span>
@@ -63,21 +83,21 @@ export default function ArticleCard({ article, onAddToQueue, isInQueue }: Articl
           disabled={isInQueue}
           data-testid={`button-stage-${article.id}`}
           className={cn(
-            "flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-md transition-all active:scale-95",
+            "flex items-center justify-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-lg transition-all active:scale-95 min-h-[40px] touch-manipulation",
             isInQueue
-              ? "bg-primary/20 text-primary cursor-default"
-              : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border"
+              ? "bg-primary/20 text-primary cursor-default border border-primary/30"
+              : "bg-secondary text-secondary-foreground hover:bg-secondary/90 active:bg-secondary/70 border border-border shadow-sm"
           )}
         >
           {isInQueue ? (
             <>
-              <Check className="w-3.5 h-3.5" />
-              <span>Staged</span>
+              <Check className="w-4 h-4 text-primary" />
+              <span>Staged in Queue</span>
             </>
           ) : (
             <>
-              <Plus className="w-3.5 h-3.5" />
-              <span>Stage</span>
+              <Plus className="w-4 h-4" />
+              <span>Stage for Post</span>
             </>
           )}
         </button>

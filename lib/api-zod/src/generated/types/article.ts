@@ -12,5 +12,6 @@ export interface Article {
   url: string;
   date: string;
   category: string;
+  source?: string;
   excerpt: string;
 }
