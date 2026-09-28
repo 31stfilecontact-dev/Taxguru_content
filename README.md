@@ -12,47 +12,18 @@ A financial services intelligence platform that automatically aggregates, catego
 - 🏛️ **Government News & Updates**: CBDT, CBIC, MCA, SEBI Master Circulars, and RBI/FEMA regulations.
 - 📋 **CA Compliances & Professional Updates**: GST procedural updates, Income Tax audit guidelines, Corporate Law filings, and ICAI announcements.
 
-### 2. Dual-Mode LinkedIn Post Studio
-- **Zero-Setup Mode**: Generates structured, publication-ready LinkedIn posts immediately without requiring any API key or subscription.
-- **AI-Enhanced Mode**: Connect your free Google AI Studio `GEMINI_API_KEY` for rich contextual synthesis and custom editorial perspectives.
+### 2. Universal Multi-Provider Post Studio
+- **Universal LLM Selector**: Use **Google Gemini** (15 req/min free), **Groq** (Llama 3.3 ultra-fast free tier), **OpenAI** (GPT-4o/mini), **DeepSeek** (V3/R1), **Anthropic Claude**, **OpenRouter**, or local **Ollama** (100% free & offline).
+- **Zero-Setup Fallback Mode**: Generates structured, publication-ready LinkedIn posts immediately without requiring any API key or subscription.
+- **Password-Protected Settings**: Admin passcode (`admin31` or custom `ADMIN_PASSWORD`) protects LLM key configuration.
+- **Custom Branding**: 31st File header logo and subtle centered background watermark on all post formats and export graphics.
 - **1-Click Copy**: Formatted specifically for LinkedIn readability with clean spacing, Unicode bullets, advisory actionables, and hashtag clusters (`#31stFile #CharteredAccountant #TaxUpdate`).
 - **Visual Export**: Download generated updates as high-resolution JPEG graphics or PDF summary briefs.
 
-### 3. Real-Time Search & Interactive Dashboard
-- Keyword search filter across article titles, excerpts, and source tags.
-- Date-filtered feed (India Standard Time).
-- Staging queue allowing batch review of important circulars and rulings.
-
----
-
-## 🚀 Quick Start (Local Run)
-
-### Prerequisites
-- Node.js >= 20
-- pnpm >= 9 (`npm install -g pnpm`)
-
-### 1. Install Dependencies
-```bash
-pnpm install
-```
-
-### 2. Run Verification Test
-Verify all live feeds and LinkedIn generator logic:
-```bash
-pnpm run test:feeds
-```
-
-### 3. Start Development Servers
-In terminal 1 (API Server on port 8080):
-```bash
-pnpm --filter @workspace/api-server run dev
-```
-
-In terminal 2 (React Dashboard):
-```bash
-pnpm --filter @workspace/dashboard run dev
-```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+### 3. Mobile-First Responsive Design
+- Touch-friendly 44px hit targets and active haptic feedback.
+- Bottom sheet slide-up drawer for post queue management on mobile screens.
+- Sticky bottom 1-tap LinkedIn copy bar.
 
 ---
 
@@ -60,51 +31,51 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 The repository includes a ready-to-deploy `vercel.json` configuration that unites the React frontend and Serverless API into a single, zero-maintenance free deployment.
 
-### Deploy Steps:
-1. Push your code to your GitHub repository:
-   ```bash
-   git push origin Taxguru
-   ```
-2. Go to [Vercel](https://vercel.com) and click **"Add New Project"**.
-3. Import your GitHub repository (`Taxguru_content`).
-4. Vercel automatically detects the configuration:
-   - **Framework Preset**: Vite
-   - **Root Directory**: `./` (leave default)
+### Quick Deploy to Vercel (Recommended):
+
+1. **GitHub Repository**:
+   Your repository is already pushed and up to date on branch `Taxguru`:
+   `https://github.com/31stfilecontact-dev/Taxguru_content`
+
+2. **Connect to Vercel**:
+   - Go to [Vercel](https://vercel.com) (sign up with GitHub if you haven't already).
+   - Click **"Add New..."** → **"Project"**.
+   - Select **`31stfilecontact-dev/Taxguru_content`**.
+
+3. **Verify Project Settings**:
+   Vercel reads `vercel.json` automatically:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: `./`
    - **Build Command**: `pnpm run build`
    - **Output Directory**: `artifacts/dashboard/dist/public`
-5. *(Optional)* Add Environment Variables in Vercel Project Settings:
-   - `GEMINI_API_KEY`: Your free Gemini API key from [Google AI Studio](https://aistudio.google.com). *(Optional — app works with built-in rule-based studio if not provided)*.
-   - `DATABASE_URL`: Your connection string from [Neon](https://neon.tech) or [Supabase](https://supabase.com) free Postgres tier. *(Optional — article aggregation and post generation do not require a database)*.
-6. Click **Deploy**. Your app is live at `https://your-project.vercel.app` completely free!
+
+4. **Environment Variables (Optional)**:
+   - `ADMIN_PASSWORD`: Your admin passcode for the LLM settings modal (default: `admin31`).
+   - `GEMINI_API_KEY`: *(Optional)* Pre-configure a Gemini API key.
+   - *(Note: All LLM keys can also be configured dynamically from the live web UI using the password-protected settings modal!)*
+
+5. **Deploy**:
+   - Click **Deploy**.
+   - In ~60 seconds, your app will be live at `https://your-project.vercel.app` with free SSL and global CDN.
+   - Any future commits pushed to GitHub will automatically trigger a zero-downtime re-deployment.
 
 ---
 
-## 🛠️ Project Architecture
+## 🚀 Local Run
 
+### Prerequisites
+- Node.js >= 20
+- pnpm >= 9 (`npm install -g pnpm`)
+
+### 1. Start Development
+```bash
+# Terminal 1: API Server (port 8080)
+pnpm --filter @workspace/api-server run dev
+
+# Terminal 2: React Dashboard (port 5173)
+pnpm --filter @workspace/dashboard run dev
 ```
-31stfile-content/
-├── api/
-│   └── index.ts                 # Vercel Serverless Function entry point
-├── artifacts/
-│   ├── api-server/              # Express 5 API server with RSS aggregation engine
-│   │   └── src/routes/
-│   │       ├── articles.ts      # Multi-source ingestion & 4-category classification
-│   │       └── gemini/          # Dual-Mode LinkedIn editorial post generator
-│   └── dashboard/               # React + Vite + Tailwind CSS + shadcn/ui frontend
-│       └── src/
-│           ├── components/      # ArticleCard, CategoryFilter, PostOutputView, QueueSidebar
-│           └── pages/dashboard  # Main intelligence feed & keyword search
-├── lib/
-│   ├── api-spec/                # OpenAPI specification & Orval codegen
-│   ├── api-client-react/        # Auto-generated React Query hooks
-│   ├── api-zod/                 # Auto-generated Zod validation schemas
-│   ├── db/                      # Drizzle ORM schemas (Postgres / Neon / Supabase)
-│   └── integrations-gemini-ai/  # Google Gemini AI SDK client
-├── scripts/
-│   └── src/test-feeds-e2e.ts    # End-to-end programmatic verification suite
-├── vercel.json                  # Vercel deployment & serverless routing config
-└── package.json                 # Monorepo workspaces & build scripts
-```
+Open [http://localhost:5173](http://localhost:5173).
 
 ---
 
