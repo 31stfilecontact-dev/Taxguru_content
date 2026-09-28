@@ -1,18 +1,38 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const src = path.resolve(process.cwd(), "artifacts/dashboard/dist/public");
-const distDst = path.resolve(process.cwd(), "dist");
-const publicDst = path.resolve(process.cwd(), "public");
+const candidates = [
+  path.resolve(process.cwd(), "dist"),
+  path.resolve(process.cwd(), "artifacts/dashboard/dist"),
+  path.resolve(process.cwd(), "artifacts/dashboard/dist/public"),
+  path.resolve(process.cwd(), "public"),
+];
 
-if (fs.existsSync(src)) {
-  fs.mkdirSync(distDst, { recursive: true });
-  fs.cpSync(src, distDst, { recursive: true });
+// Find a built directory that contains index.html
+let validSource = null;
+for (const cand of candidates) {
+  if (fs.existsSync(path.join(cand, "index.html"))) {
+    validSource = cand;
+    break;
+  }
+}
 
-  fs.mkdirSync(publicDst, { recursive: true });
-  fs.cpSync(src, publicDst, { recursive: true });
-
-  console.log(`[Deploy Ready] Successfully copied dashboard build to ./public and ./dist`);
+if (!validSource) {
+  console.warn("[Deploy Warning] Could not find a build directory containing index.html");
 } else {
-  console.warn(`[Warning] Source directory not found: ${src}`);
+  const targets = [
+    path.resolve(process.cwd(), "dist"),
+    path.resolve(process.cwd(), "public"),
+    path.resolve(process.cwd(), "artifacts/dashboard/dist"),
+    path.resolve(process.cwd(), "artifacts/dashboard/dist/public"),
+  ];
+
+  for (const target of targets) {
+    if (target !== validSource) {
+      fs.mkdirSync(target, { recursive: true });
+      fs.cpSync(validSource, target, { recursive: true });
+    }
+  }
+
+  console.log(`[Deploy Ready] Synchronized production build from ${validSource} across all Vercel output targets: ./dist, ./public, ./artifacts/dashboard/dist`);
 }
