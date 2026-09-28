@@ -143,8 +143,8 @@ export const getGetArticlesUrl = (params?: GetArticlesParams,) => {
 }
 
 /**
- * Returns tax and regulatory articles from TaxGuru RSS feeds, optionally filtered by date
- * @summary Get articles by date
+ * Returns tax and regulatory articles from TaxGuru RSS feeds, optionally filtered by their publication date in India Standard Time
+ * @summary Get articles by publication date
  */
 export const getArticles = async (params?: GetArticlesParams, options?: RequestInit): Promise<Article[]> => {
 
@@ -191,7 +191,7 @@ export type GetArticlesQueryError = ErrorType<ErrorResponse>
 
 
 /**
- * @summary Get articles by date
+ * @summary Get articles by publication date
  */
 
 export function useGetArticles<TData = Awaited<ReturnType<typeof getArticles>>, TError = ErrorType<ErrorResponse>>(
@@ -228,8 +228,8 @@ export const getGetArticlesSummaryUrl = (params?: GetArticlesSummaryParams,) => 
 }
 
 /**
- * Returns a summary of article counts grouped by category for a given date
- * @summary Get article counts by category
+ * Returns a summary of article counts grouped by category for a publication date in India Standard Time
+ * @summary Get article counts by publication date
  */
 export const getArticlesSummary = async (params?: GetArticlesSummaryParams, options?: RequestInit): Promise<ArticlesSummary> => {
 
@@ -253,7 +253,7 @@ export const getGetArticlesSummaryQueryKey = (params?: GetArticlesSummaryParams,
     }
 
 
-export const getGetArticlesSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getArticlesSummary>>, TError = ErrorType<unknown>>(params?: GetArticlesSummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getArticlesSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetArticlesSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getArticlesSummary>>, TError = ErrorType<ErrorResponse>>(params?: GetArticlesSummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getArticlesSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -272,14 +272,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetArticlesSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getArticlesSummary>>>
-export type GetArticlesSummaryQueryError = ErrorType<unknown>
+export type GetArticlesSummaryQueryError = ErrorType<ErrorResponse>
 
 
 /**
- * @summary Get article counts by category
+ * @summary Get article counts by publication date
  */
 
-export function useGetArticlesSummary<TData = Awaited<ReturnType<typeof getArticlesSummary>>, TError = ErrorType<unknown>>(
+export function useGetArticlesSummary<TData = Awaited<ReturnType<typeof getArticlesSummary>>, TError = ErrorType<ErrorResponse>>(
  params?: GetArticlesSummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getArticlesSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {

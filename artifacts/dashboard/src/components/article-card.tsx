@@ -32,7 +32,7 @@ export default function ArticleCard({ article, onAddToQueue, isInQueue }: Articl
         >
           {article.category}
         </Badge>
-        <span className="text-xs font-mono text-muted-foreground text-right">{article.date}</span>
+        <span className="text-xs font-mono text-muted-foreground text-right">Published {article.date}</span>
       </div>
 
       {/* Title */}

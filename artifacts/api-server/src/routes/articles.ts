@@ -13,16 +13,48 @@ const TARGET_FEEDS: Record<string, string> = {
   "Company Law": "https://taxguru.in/category/company-law/feed/",
 };
 
+const PUBLICATION_TIME_ZONE = "Asia/Kolkata";
+
 function cleanHtml(raw: string): string {
   return raw.replace(/<[^>]+>/g, "").trim();
 }
 
+function getDateParts(date: Date): Record<string, string> {
+  return Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: PUBLICATION_TIME_ZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+      .formatToParts(date)
+      .filter(({ type }) => type !== "literal")
+      .map(({ type, value }) => [type, value]),
+  );
+}
+
 function formatDisplayDate(date: Date): string {
   return date.toLocaleDateString("en-US", {
+    timeZone: PUBLICATION_TIME_ZONE,
     year: "numeric",
     month: "long",
     day: "2-digit",
   });
+}
+
+function getPublicationDate(entry: Parser.Item): { isoDate: string; displayDate: string; timestamp: number } | null {
+  const rawDate = entry.isoDate ?? entry.pubDate;
+  if (!rawDate) return null;
+
+  const date = new Date(rawDate);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const parts = getDateParts(date);
+  return {
+    isoDate: `${parts.year}-${parts.month}-${parts.day}`,
+    displayDate: formatDisplayDate(date),
+    timestamp: date.getTime(),
+  };
 }
 
 type Article = {
@@ -35,7 +67,7 @@ type Article = {
 };
 
 async function fetchAllArticles(targetDate?: string): Promise<Article[]> {
-  const articles: Article[] = [];
+  const articles: Array<Article & { publishedAt: number }> = [];
   let articleId = 1;
 
   const feedResults = await Promise.allSettled(
@@ -50,20 +82,10 @@ async function fetchAllArticles(targetDate?: string): Promise<Article[]> {
     const { category, entries } = result.value;
 
     for (const entry of entries) {
-      let postDateStr: string;
-      let displayDate: string;
+      const publicationDate = getPublicationDate(entry);
+      if (!publicationDate) continue;
 
-      if (entry.pubDate) {
-        const dt = new Date(entry.pubDate);
-        postDateStr = dt.toISOString().split("T")[0];
-        displayDate = formatDisplayDate(dt);
-      } else {
-        const now = new Date();
-        postDateStr = now.toISOString().split("T")[0];
-        displayDate = formatDisplayDate(now);
-      }
-
-      if (targetDate && postDateStr !== targetDate) continue;
+      if (targetDate && publicationDate.isoDate !== targetDate) continue;
 
       const rawSummary = entry.contentSnippet || entry.content || entry.summary || "";
       const fullSummary = cleanHtml(rawSummary);
@@ -74,20 +96,27 @@ async function fetchAllArticles(targetDate?: string): Promise<Article[]> {
         id: `31f_${articleId}`,
         title: entry.title || "Untitled",
         url: entry.link || "",
-        date: displayDate,
+        date: publicationDate.displayDate,
         category,
         excerpt,
+        publishedAt: publicationDate.timestamp,
       });
       articleId++;
     }
   }
 
-  return articles;
+  return articles
+    .sort((a, b) => b.publishedAt - a.publishedAt)
+    .map(({ publishedAt: _publishedAt, ...article }) => article);
 }
 
-router.get("/articles", async (req, res) => {
+router.get("/articles", async (req, res): Promise<void> => {
   const parseResult = GetArticlesQueryParams.safeParse(req.query);
-  const targetDate = parseResult.success ? parseResult.data.date : undefined;
+  if (!parseResult.success) {
+    res.status(400).json({ error: "Invalid publication date. Use YYYY-MM-DD." });
+    return;
+  }
+  const targetDate = parseResult.data.date;
 
   try {
     const articles = await fetchAllArticles(targetDate);
@@ -98,9 +127,13 @@ router.get("/articles", async (req, res) => {
   }
 });
 
-router.get("/articles/summary", async (req, res) => {
+router.get("/articles/summary", async (req, res): Promise<void> => {
   const parseResult = GetArticlesSummaryQueryParams.safeParse(req.query);
-  const targetDate = parseResult.success ? parseResult.data.date : undefined;
+  if (!parseResult.success) {
+    res.status(400).json({ error: "Invalid publication date. Use YYYY-MM-DD." });
+    return;
+  }
+  const targetDate = parseResult.data.date;
 
   try {
     const articles = await fetchAllArticles(targetDate);

@@ -18,14 +18,14 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
- * Returns tax and regulatory articles from TaxGuru RSS feeds, optionally filtered by date
- * @summary Get articles by date
+ * Returns tax and regulatory articles from TaxGuru RSS feeds, optionally filtered by their publication date in India Standard Time
+ * @summary Get articles by publication date
  */
 export const getArticlesQueryDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
 
 
 export const GetArticlesQueryParams = zod.object({
-  "date": zod.coerce.string().regex(getArticlesQueryDateRegExp).optional().describe('Filter articles by date (YYYY-MM-DD format)')
+  "date": zod.coerce.string().regex(getArticlesQueryDateRegExp).optional().describe('Filter articles by publication date in India Standard Time (YYYY-MM-DD format)')
 })
 
 export const GetArticlesResponseItem = zod.object({
@@ -40,14 +40,14 @@ export const GetArticlesResponse = zod.array(GetArticlesResponseItem)
 
 
 /**
- * Returns a summary of article counts grouped by category for a given date
- * @summary Get article counts by category
+ * Returns a summary of article counts grouped by category for a publication date in India Standard Time
+ * @summary Get article counts by publication date
  */
 export const getArticlesSummaryQueryDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
 
 
 export const GetArticlesSummaryQueryParams = zod.object({
-  "date": zod.coerce.string().regex(getArticlesSummaryQueryDateRegExp).optional().describe('Filter by date (YYYY-MM-DD format)')
+  "date": zod.coerce.string().regex(getArticlesSummaryQueryDateRegExp).optional().describe('Filter by publication date in India Standard Time (YYYY-MM-DD format)')
 })
 
 export const GetArticlesSummaryResponse = zod.object({

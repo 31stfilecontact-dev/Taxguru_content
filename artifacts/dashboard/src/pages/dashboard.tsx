@@ -97,7 +97,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <div className="flex items-center flex-1 sm:flex-none bg-background border border-border rounded-md px-2 sm:px-3 py-1.5 focus-within:ring-1 focus-within:ring-primary/50 transition-shadow">
               <label htmlFor="date-picker" className="text-[10px] font-mono text-muted-foreground mr-2 uppercase tracking-wider hidden sm:block">
-                Date
+                Published
               </label>
               <input
                 id="date-picker"
@@ -105,6 +105,8 @@ export default function Dashboard() {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 data-testid="input-date"
+                aria-label="Publication date"
+                title="Filter by publication date"
                 className="bg-transparent border-none text-sm font-mono focus:outline-none focus:ring-0 w-full sm:w-[130px]"
               />
             </div>
@@ -136,7 +138,7 @@ export default function Dashboard() {
               <Search className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground mb-3 opacity-50" />
               <h3 className="text-base md:text-lg font-medium text-foreground mb-1">Pipeline Idle</h3>
               <p className="text-sm text-muted-foreground max-w-sm">
-                Select a target date and tap Gather to pull live regulatory updates from TaxGuru.
+                 Select a publication date and tap Gather to pull live regulatory updates from TaxGuru.
               </p>
             </div>
           )}
@@ -162,14 +164,14 @@ export default function Dashboard() {
           {articles && !isLoadingData && articles.length === 0 && (
             <div className="h-[200px] flex flex-col items-center justify-center text-center border border-border rounded-lg bg-card/30">
               <AlertCircle className="w-8 h-8 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">No regulatory updates found for this date.</p>
+              <p className="text-sm text-muted-foreground">No regulatory updates found for this publication date.</p>
             </div>
           )}
 
           {filteredArticles && !isLoadingData && articles && articles.length > 0 && filteredArticles.length === 0 && (
             <div className="h-[180px] flex flex-col items-center justify-center text-center border border-border rounded-lg bg-card/30 gap-2">
               <AlertCircle className="w-7 h-7 text-muted-foreground opacity-60" />
-              <p className="text-sm text-muted-foreground">No articles in <span className="text-foreground font-medium">{activeCategory}</span> for this date.</p>
+              <p className="text-sm text-muted-foreground">No articles in <span className="text-foreground font-medium">{activeCategory}</span> for this publication date.</p>
               <button onClick={() => setActiveCategory(null)} className="text-xs text-primary hover:underline">
                 Clear filter
               </button>

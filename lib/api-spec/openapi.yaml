@@ -32,13 +32,13 @@ paths:
     get:
       operationId: getArticles
       tags: [articles]
-      summary: Get articles by date
-      description: Returns tax and regulatory articles from TaxGuru RSS feeds, optionally filtered by date
+      summary: Get articles by publication date
+      description: Returns tax and regulatory articles from TaxGuru RSS feeds, optionally filtered by their publication date in India Standard Time
       parameters:
         - name: date
           in: query
           required: false
-          description: Filter articles by date (YYYY-MM-DD format)
+          description: Filter articles by publication date in India Standard Time (YYYY-MM-DD format)
           schema:
             type: string
             pattern: '^\d{4}-\d{2}-\d{2}$'
@@ -58,17 +58,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Invalid publication date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /articles/summary:
     get:
       operationId: getArticlesSummary
       tags: [articles]
-      summary: Get article counts by category
-      description: Returns a summary of article counts grouped by category for a given date
+      summary: Get article counts by publication date
+      description: Returns a summary of article counts grouped by category for a publication date in India Standard Time
       parameters:
         - name: date
           in: query
           required: false
-          description: Filter by date (YYYY-MM-DD format)
+          description: Filter by publication date in India Standard Time (YYYY-MM-DD format)
           schema:
             type: string
             pattern: '^\d{4}-\d{2}-\d{2}$'
@@ -79,6 +85,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ArticlesSummary"
+        "400":
+          description: Invalid publication date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /gemini/conversations:
     get:
       operationId: listGeminiConversations

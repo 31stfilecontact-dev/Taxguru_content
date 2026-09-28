@@ -96,7 +96,7 @@ export interface GeneratedPost {
 
 export type GetArticlesParams = {
 /**
- * Filter articles by date (YYYY-MM-DD format)
+ * Filter articles by publication date in India Standard Time (YYYY-MM-DD format)
  * @pattern ^\d{4}-\d{2}-\d{2}$
  */
 date?: string;
@@ -104,7 +104,7 @@ date?: string;
 
 export type GetArticlesSummaryParams = {
 /**
- * Filter by date (YYYY-MM-DD format)
+ * Filter by publication date in India Standard Time (YYYY-MM-DD format)
  * @pattern ^\d{4}-\d{2}-\d{2}$
  */
 date?: string;
