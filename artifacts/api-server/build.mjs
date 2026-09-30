@@ -129,6 +129,9 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     format: "esm",
     outfile: apiOut,
     logLevel: "info",
+    define: {
+      "process.env.NODE_ENV": '"production"',
+    },
     external: [
       "*.node",
       "sharp",
