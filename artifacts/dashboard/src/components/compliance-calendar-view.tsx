@@ -87,6 +87,8 @@ export default function ComplianceCalendarView({ onBack }: ComplianceCalendarVie
   const {
     data: items,
     isLoading,
+    isError,
+    error,
     refetch,
   } = useGetComplianceCalendar({
     year: selectedYear,
@@ -296,7 +298,8 @@ export default function ComplianceCalendarView({ onBack }: ComplianceCalendarVie
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <div className="px-2 font-mono text-xs sm:text-sm font-semibold text-sky-300 min-w-[130px] text-center">
+          <div className="px-2 font-mono text-xs sm:text-sm font-semibold text-sky-300 min-w-[130px] text-center flex items-center justify-center gap-1.5">
+            {isLoading && <Loader2 className="w-3 h-3 animate-spin text-sky-400" />}
             {monthName} {selectedYear}
           </div>
           <button
@@ -376,6 +379,18 @@ export default function ComplianceCalendarView({ onBack }: ComplianceCalendarVie
           </button>
         </div>
       </header>
+
+      {isError && (
+        <div className="bg-red-950/80 border-b border-red-800/80 px-4 py-2.5 flex items-center justify-between text-xs text-red-200 z-20">
+          <span>Failed to load statutory compliance calendar: {(error as any)?.message || "API connection error"}.</span>
+          <button
+            onClick={() => refetch()}
+            className="px-2.5 py-1 bg-red-900 hover:bg-red-800 text-white rounded text-xs font-medium"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* ── Responsive Screen Preview Container ── */}
       <div className="flex-1 overflow-auto p-3 sm:p-6 flex justify-center items-start bg-[#050811]">
