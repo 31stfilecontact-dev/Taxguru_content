@@ -14,6 +14,11 @@ import {
   Calendar,
   Users,
   CheckSquare,
+  ThumbsUp,
+  MessageSquare,
+  Repeat2,
+  Send,
+  Sparkles,
 } from "lucide-react";
 
 const HEADER_LOGO = "/logo-header.png";
@@ -31,6 +36,7 @@ export default function RegularUpdateView({ post, onBack }: RegularUpdateViewPro
   const [pushing, setPushing] = useState(false);
   const [pushed, setPushed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<"preview" | "graphic" | "text">("preview");
 
   const headline = post.headline || post.title;
   const whatChanged = post.whatChanged || post.summaryOfFacts || "";
@@ -145,6 +151,135 @@ ${tags}`;
 
   const linkedInText = getLinkedInFormattedText();
 
+  const renderGraphicCard = (isEmbedded = false) => (
+    <div
+      data-testid="card-update-preview"
+      className={`w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden relative text-slate-900 ${
+        isEmbedded ? "mb-0" : "mb-8"
+      }`}
+    >
+      {/* Solid Navy Blue Header */}
+      <div className="bg-[#0F172A] px-5 sm:px-7 py-4 sm:py-5 flex items-center justify-between border-b border-slate-800">
+        <img
+          src={HEADER_LOGO}
+          alt="31st File"
+          className="h-8 sm:h-9 object-contain filter drop-shadow-sm"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+        />
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase text-amber-300 bg-amber-950/80 border border-amber-500/30 px-2.5 py-1 rounded-full">
+            Compliance Alert
+          </span>
+          <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-full hidden sm:inline">
+            {post.articleDate}
+          </span>
+        </div>
+      </div>
+
+      {/* White Card Body with Blue Watermark */}
+      <div className="p-5 sm:p-8 relative bg-white">
+        {/* Centered subtle background watermark */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-[0.07] select-none z-0"
+        >
+          <img
+            src={WATERMARK_LOGO}
+            alt=""
+            className="w-72 sm:w-96 max-w-[80vw] object-contain"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          />
+        </div>
+
+        <article className="relative z-10">
+          {/* Category pill & mobile date */}
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[10px] sm:text-[11px] font-bold tracking-widest uppercase text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-0.5 rounded-full">
+              {post.articleCategory}
+            </span>
+            <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full sm:hidden">
+              {post.articleDate}
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h1
+            className="text-xl sm:text-2xl md:text-[26px] font-bold text-slate-900 leading-snug tracking-tight mb-5"
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+          >
+            {headline}
+          </h1>
+
+          {/* Divider */}
+          <div className="h-px bg-gradient-to-r from-blue-600/30 via-slate-300 to-transparent mb-6" />
+
+          {/* What Changed paragraph */}
+          <section className="mb-5 bg-slate-50 border border-slate-200/90 rounded-xl p-4 sm:p-5">
+            <p className="text-[11px] font-bold tracking-wider uppercase text-slate-600 mb-2">
+              What Changed
+            </p>
+            <p className="text-sm sm:text-[15px] text-slate-700 leading-relaxed whitespace-pre-line m-0">
+              {whatChanged}
+            </p>
+          </section>
+
+          {/* Two-Column Compact Row: Effective Date | Applies To */}
+          <section className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+              <Calendar className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold block">
+                  Effective Date
+                </span>
+                <span className="text-xs sm:text-sm font-semibold text-slate-900 mt-0.5 block">
+                  {effectiveDate}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+              <Users className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold block">
+                  Applies To
+                </span>
+                <span className="text-xs sm:text-sm font-semibold text-slate-900 mt-0.5 block">
+                  {appliesTo}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* Action Required: Distinctive note box */}
+          <section className="mb-6 rounded-xl border border-blue-200 bg-blue-50/60 p-4 sm:p-5 border-l-4 border-l-blue-600">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <CheckSquare className="w-4 h-4 text-blue-700" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                Action Required
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-800 leading-relaxed m-0 font-medium">
+              {actionRequired}
+            </p>
+          </section>
+
+          {/* Source link */}
+          <div className="mb-2">
+            <a
+              href={post.articleUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-semibold transition-colors py-1"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Read official notification / circular</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-[#0B1120] relative">
       {/* ── Sticky top bar ── */}
@@ -209,216 +344,274 @@ ${tags}`;
         </div>
       </div>
 
-      {/* ── Reader scroll area ── */}
+      {/* ── Subheader Tab Switcher ── */}
+      <div className="flex-none px-3 sm:px-6 py-2.5 border-b border-white/8 bg-[#0F172A]/80 backdrop-blur-md flex items-center justify-between gap-2 overflow-x-auto">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 border border-white/10 rounded-xl">
+          <button
+            onClick={() => setActiveTab("preview")}
+            data-testid="tab-linkedin-preview"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === "preview"
+                ? "bg-sky-600 text-white shadow-sm"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>LinkedIn Post Preview</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("graphic")}
+            data-testid="tab-graphic-preview"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === "graphic"
+                ? "bg-sky-600 text-white shadow-sm"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <ImageIcon className="w-3.5 h-3.5" />
+            <span>Visual Graphic Asset</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("text")}
+            data-testid="tab-text-preview"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === "text"
+                ? "bg-sky-600 text-white shadow-sm"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <Copy className="w-3.5 h-3.5" />
+            <span>Text Copy & Webhook</span>
+          </button>
+        </div>
+
+        <div className="text-[11px] font-mono text-slate-400 hidden sm:flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span>Statutory Compliance Desk</span>
+        </div>
+      </div>
+
+      {/* ── Main Scroll Area ── */}
       <div className="flex-1 overflow-y-auto pb-24 sm:pb-16 relative p-3 sm:p-6 flex flex-col items-center">
-        {/* Main Regulatory Update Card Container */}
-        <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden relative text-slate-900 mb-8">
-          {/* Solid Navy Blue Header */}
-          <div className="bg-[#0F172A] px-5 sm:px-7 py-4 sm:py-5 flex items-center justify-between border-b border-slate-800">
-            <img
-              src={HEADER_LOGO}
-              alt="31st File"
-              className="h-8 sm:h-9 object-contain filter drop-shadow-sm"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-            />
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase text-amber-300 bg-amber-950/80 border border-amber-500/30 px-2.5 py-1 rounded-full">
-                Compliance Alert
-              </span>
-              <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-full hidden sm:inline">
-                {post.articleDate}
-              </span>
-            </div>
-          </div>
-
-          {/* White Card Body with Blue Watermark */}
-          <div className="p-5 sm:p-8 relative bg-white">
-            {/* Centered subtle background watermark */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-[0.07] select-none z-0"
-            >
-              <img
-                src={WATERMARK_LOGO}
-                alt=""
-                className="w-72 sm:w-96 max-w-[80vw] object-contain"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-              />
-            </div>
-
-            <article className="relative z-10">
-              {/* Category pill & mobile date */}
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] sm:text-[11px] font-bold tracking-widest uppercase text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-0.5 rounded-full">
-                  {post.articleCategory}
-                </span>
-                <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full sm:hidden">
-                  {post.articleDate}
-                </span>
+        {/* TAB 1: Real-life LinkedIn Feed Mockup Preview */}
+        {activeTab === "preview" && (
+          <div className="w-full max-w-2xl space-y-4">
+            {/* Quick banner */}
+            <div className="w-full bg-sky-950/40 border border-sky-500/30 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs text-sky-200">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-sky-400 shrink-0" />
+                <span>Simulated LinkedIn feed preview with live copy and attached graphic.</span>
               </div>
-
-              {/* Headline */}
-              <h1
-                className="text-xl sm:text-2xl md:text-[26px] font-bold text-slate-900 leading-snug tracking-tight mb-5"
-                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-              >
-                {headline}
-              </h1>
-
-              {/* Divider */}
-              <div className="h-px bg-gradient-to-r from-blue-600/30 via-slate-300 to-transparent mb-6" />
-
-              {/* What Changed paragraph */}
-              <section className="mb-5 bg-slate-50 border border-slate-200/90 rounded-xl p-4 sm:p-5">
-                <p className="text-[11px] font-bold tracking-wider uppercase text-slate-600 mb-2">
-                  What Changed
-                </p>
-                <p className="text-sm sm:text-[15px] text-slate-700 leading-relaxed whitespace-pre-line m-0">
-                  {whatChanged}
-                </p>
-              </section>
-
-              {/* Two-Column Compact Row: Effective Date | Applies To */}
-              <section className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                  <Calendar className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold block">
-                      Effective Date
-                    </span>
-                    <span className="text-xs sm:text-sm font-semibold text-slate-900 mt-0.5 block">
-                      {effectiveDate}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                  <Users className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold block">
-                      Applies To
-                    </span>
-                    <span className="text-xs sm:text-sm font-semibold text-slate-900 mt-0.5 block">
-                      {appliesTo}
-                    </span>
-                  </div>
-                </div>
-              </section>
-
-              {/* Action Required: Distinctive note box */}
-              <section className="mb-6 rounded-xl border border-blue-200 bg-blue-50/60 p-4 sm:p-5 border-l-4 border-l-blue-600">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <CheckSquare className="w-4 h-4 text-blue-700" />
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-blue-950">
-                    Action Required
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm text-slate-800 leading-relaxed m-0 font-medium">
-                  {actionRequired}
-                </p>
-              </section>
-
-              {/* Source link */}
-              <div className="mb-2">
-                <a
-                  href={post.articleUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-semibold transition-colors py-1"
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={copyForLinkedIn}
+                  className="bg-sky-600 hover:bg-sky-500 text-white font-semibold px-2.5 py-1 rounded-md text-[11px] transition-all flex items-center gap-1 shadow-sm"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Read official notification / circular</span>
-                </a>
+                  {copied ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
+                  <span>{copied ? "Copied!" : "Copy Post"}</span>
+                </button>
+                <button
+                  onClick={downloadAsJPEG}
+                  disabled={exporting !== null}
+                  className="bg-white/10 hover:bg-white/20 text-white font-medium px-2.5 py-1 rounded-md text-[11px] transition-all flex items-center gap-1"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>Download JPEG</span>
+                </button>
               </div>
-            </article>
-          </div>
-        </div>
-
-        {/* ── Auxiliary Studio Panels (Below Card) ── */}
-        <div className="w-full max-w-2xl space-y-6">
-
-          {/* ── LinkedIn Studio Box ── */}
-          <section className="mb-8 bg-slate-900/90 border border-sky-500/30 rounded-xl p-4 sm:p-5 shadow-lg">
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="bg-sky-500/20 text-sky-300 text-[11px] px-2 py-0.5 rounded font-mono font-bold">
-                  LinkedIn Studio
-                </span>
-                <span className="text-[11px] text-slate-400 font-mono">
-                  {linkedInText.length} chars
-                </span>
-              </div>
-              <button
-                onClick={copyForLinkedIn}
-                className="flex items-center gap-1.5 text-xs font-semibold bg-sky-600 hover:bg-sky-500 active:scale-95 text-white px-3 py-1.5 rounded-md transition-all touch-manipulation"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? "Copied!" : "Copy Post"}</span>
-              </button>
             </div>
 
-            <div className="bg-slate-950/70 border border-white/10 rounded-lg p-3 sm:p-4 font-sans text-xs sm:text-sm text-slate-200 whitespace-pre-line leading-relaxed max-h-60 sm:max-h-72 overflow-y-auto">
-              {linkedInText}
-            </div>
-
-            {post.hashtags && post.hashtags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-3">
-                {post.hashtags.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="text-[10px] sm:text-[11px] font-mono text-sky-400/80 bg-sky-400/10 px-2 py-0.5 rounded"
-                  >
-                    {tag}
+            {/* LinkedIn Mockup Card */}
+            <div className="w-full bg-[#1E293B] border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl">
+              {/* LinkedIn Post Author Header */}
+              <div className="p-4 sm:p-5 flex items-center justify-between border-b border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-[#0F172A] border-2 border-sky-500/30 flex items-center justify-center overflow-hidden shrink-0 shadow-md">
+                    <img src={HEADER_LOGO} alt="31st File" className="w-9 h-9 object-contain" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-semibold text-sm text-white hover:text-sky-400 cursor-pointer">31st File</span>
+                      <span className="text-slate-400 text-xs">• 1st</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 truncate">Tax, Regulatory & Financial Intelligence // IND</p>
+                    <div className="flex items-center gap-1 text-[10px] text-slate-500 mt-0.5">
+                      <span>Just now</span>
+                      <span>•</span>
+                      <span title="Public">🌐</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2.5 py-1 rounded-full hidden xs:inline">
+                    LinkedIn Feed Preview
                   </span>
-                ))}
+                </div>
               </div>
-            )}
-          </section>
 
-          {/* Webhook Automation section */}
-          <section className="mb-6">
-            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-slate-400 mb-2 flex items-center gap-1.5">
-              <Share2 className="w-3 h-3" />
-              Webhook Automation
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex-1 flex items-center gap-2 bg-white/4 border border-white/10 rounded-lg px-3 focus-within:ring-1 focus-within:ring-primary/50 transition-shadow">
-                <Link2 className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                <input
-                  type="url"
-                  placeholder="https://hook.eu1.make.com/..."
-                  value={webhookUrl}
-                  onChange={(e) => setWebhookUrl(e.target.value)}
-                  className="w-full bg-transparent border-none py-2 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
-                />
+              {/* Post Text Content */}
+              <div className="p-4 sm:p-5 font-sans text-xs sm:text-sm text-slate-200 whitespace-pre-line leading-relaxed border-b border-slate-800/80">
+                {linkedInText}
               </div>
-              <button
-                onClick={postToSocials}
-                disabled={!webhookUrl.trim() || pushing}
-                className="flex items-center justify-center gap-1.5 bg-secondary hover:bg-secondary/80 text-foreground px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 min-h-[38px] touch-manipulation"
-              >
-                {pushing ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <ExternalLink className="w-3.5 h-3.5" />
-                )}
-                <span>{pushed ? "Sent!" : "Push Webhook"}</span>
-              </button>
+
+              {/* Attached Visual Graphic Preview (Embedded in LinkedIn post) */}
+              <div className="p-3 sm:p-5 bg-slate-950/60 border-b border-slate-800">
+                <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2.5 flex items-center justify-between">
+                  <span>Attached Graphic Asset</span>
+                  <span className="text-sky-400">1080 × 1350 High-Res</span>
+                </div>
+                {renderGraphicCard(true)}
+              </div>
+
+              {/* LinkedIn Interaction Bar */}
+              <div className="px-4 py-3 bg-[#0F172A] border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 select-none">
+                <div className="flex items-center gap-4 sm:gap-6">
+                  <div className="flex items-center gap-1.5 hover:text-sky-400 cursor-pointer transition-colors">
+                    <ThumbsUp className="w-4 h-4" />
+                    <span className="hidden xs:inline">Like</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 hover:text-sky-400 cursor-pointer transition-colors">
+                    <MessageSquare className="w-4 h-4" />
+                    <span className="hidden xs:inline">Comment</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 hover:text-sky-400 cursor-pointer transition-colors">
+                    <Repeat2 className="w-4 h-4" />
+                    <span className="hidden xs:inline">Repost</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 hover:text-sky-400 cursor-pointer transition-colors">
+                    <Send className="w-4 h-4" />
+                    <span className="hidden xs:inline">Send</span>
+                  </div>
+                </div>
+                <button
+                  onClick={copyForLinkedIn}
+                  className="flex items-center gap-1.5 text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg transition-all"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? "Copied!" : "Copy Post"}</span>
+                </button>
+              </div>
             </div>
-            {pushed && (
-              <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Successfully pushed to your scheduling webhook
-              </p>
-            )}
-          </section>
-
-          {/* Branding footer */}
-          <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-500">
-            <span className="font-mono">31stFile.com</span>
-            <span>Financial Hub // IND</span>
           </div>
-        </div>
+        )}
+
+        {/* TAB 2: Standalone Visual Graphic Card */}
+        {activeTab === "graphic" && (
+          <div className="w-full max-w-2xl flex flex-col items-center">
+            <div className="w-full flex items-center justify-between mb-3 px-1">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-sky-400 font-semibold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+                Standalone Compliance Graphic Asset
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={downloadAsJPEG}
+                  disabled={exporting !== null}
+                  className="text-xs bg-sky-600 hover:bg-sky-500 text-white font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 shadow-sm"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download JPEG</span>
+                </button>
+                <button
+                  onClick={downloadAsPDF}
+                  disabled={exporting !== null}
+                  className="text-xs bg-white/10 hover:bg-white/20 text-white font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-1"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>PDF</span>
+                </button>
+              </div>
+            </div>
+            {renderGraphicCard(false)}
+          </div>
+        )}
+
+        {/* TAB 3: Text Copy & Webhook */}
+        {activeTab === "text" && (
+          <div className="w-full max-w-2xl space-y-6">
+            {/* ── LinkedIn Studio Box ── */}
+            <section className="mb-8 bg-slate-900/90 border border-sky-500/30 rounded-xl p-4 sm:p-5 shadow-lg">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="bg-sky-500/20 text-sky-300 text-[11px] px-2 py-0.5 rounded font-mono font-bold">
+                    LinkedIn Studio
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    {linkedInText.length} chars
+                  </span>
+                </div>
+                <button
+                  onClick={copyForLinkedIn}
+                  className="flex items-center gap-1.5 text-xs font-semibold bg-sky-600 hover:bg-sky-500 active:scale-95 text-white px-3 py-1.5 rounded-md transition-all touch-manipulation"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? "Copied!" : "Copy Post"}</span>
+                </button>
+              </div>
+
+              <div className="bg-slate-950/70 border border-white/10 rounded-lg p-3 sm:p-4 font-sans text-xs sm:text-sm text-slate-200 whitespace-pre-line leading-relaxed max-h-60 sm:max-h-72 overflow-y-auto">
+                {linkedInText}
+              </div>
+
+              {post.hashtags && post.hashtags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-3">
+                  {post.hashtags.map((tag, idx) => (
+                    <span
+                      key={idx}
+                      className="text-[10px] sm:text-[11px] font-mono text-sky-400/80 bg-sky-400/10 px-2 py-0.5 rounded"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Webhook Automation section */}
+            <section className="mb-6">
+              <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-slate-400 mb-2 flex items-center gap-1.5">
+                <Share2 className="w-3 h-3" />
+                Webhook Automation
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex-1 flex items-center gap-2 bg-white/4 border border-white/10 rounded-lg px-3 focus-within:ring-1 focus-within:ring-primary/50 transition-shadow">
+                  <Link2 className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <input
+                    type="url"
+                    placeholder="https://hook.eu1.make.com/..."
+                    value={webhookUrl}
+                    onChange={(e) => setWebhookUrl(e.target.value)}
+                    className="w-full bg-transparent border-none py-2 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+                  />
+                </div>
+                <button
+                  onClick={postToSocials}
+                  disabled={!webhookUrl.trim() || pushing}
+                  className="flex items-center justify-center gap-1.5 bg-secondary hover:bg-secondary/80 text-foreground px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 min-h-[38px] touch-manipulation"
+                >
+                  {pushing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  )}
+                  <span>{pushed ? "Sent!" : "Push Webhook"}</span>
+                </button>
+              </div>
+              {pushed && (
+                <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Successfully pushed to your scheduling webhook
+                </p>
+              )}
+            </section>
+
+            {/* Branding footer */}
+            <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-500">
+              <span className="font-mono">31stFile.com</span>
+              <span>Financial Hub // IND</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Off-screen export card (captured for JPEG / PDF) ── */}
