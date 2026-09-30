@@ -6,9 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { Article } from './article';
+import type { GeneratePostInputPostFormat } from './generatePostInputPostFormat';
 
 export interface GeneratePostInput {
   article: Article;
   /** Optional custom firm perspective to inject into the prompt */
   firmInsight?: string;
+  /** Format of the post to generate */
+  postFormat?: GeneratePostInputPostFormat;
 }

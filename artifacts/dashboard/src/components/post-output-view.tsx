@@ -15,6 +15,7 @@ import {
 
 const HEADER_LOGO = "/logo-header.png";
 const WATERMARK_LOGO = "/logo-watermark.png";
+const BLUE_LOGO = "/logo-header-blue.png";
 
 interface PostOutputViewProps {
   post: GeneratedPost;
@@ -36,16 +37,18 @@ export default function PostOutputView({ post, onBack }: PostOutputViewProps) {
       ? post.hashtags.join(" ")
       : `#31stFile #${categoryTag} #CharteredAccountant #TaxUpdate #ComplianceAlert #Finance`;
 
+    const keyTakeaways = post.keyTakeaways || [];
+
     return `🚨 Regulatory Update: ${post.title}
 
 📌 Summary of Facts:
-${post.summaryOfFacts}
+${post.summaryOfFacts || ""}
 
 🔍 Key Takeaways:
-${post.keyTakeaways.map((t) => `• ${t}`).join("\n")}
+${keyTakeaways.map((t) => `• ${t}`).join("\n")}
 
 💡 31st File Advisory Perspective:
-${post.firmPerspective}
+${post.firmPerspective || ""}
 
 🔗 Direct Reference: ${post.articleUrl}
 
@@ -59,7 +62,6 @@ ${tags}`;
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      // Fallback
       const textarea = document.createElement("textarea");
       textarea.value = text;
       document.body.appendChild(textarea);
@@ -80,10 +82,12 @@ ${tags}`;
         scale: 2,
         backgroundColor: "#0B1120",
         useCORS: true,
+        allowTaint: true,
+        logging: false,
       });
       const link = document.createElement("a");
-      link.download = `31stFile_Update_${post.articleDate.replace(/\s/g, "_")}.jpeg`;
-      link.href = canvas.toDataURL("image/jpeg", 0.92);
+      link.download = `31stFile_Analysis_${post.articleDate.replace(/\s/g, "_")}.jpeg`;
+      link.href = canvas.toDataURL("image/jpeg", 0.95);
       link.click();
     } finally {
       setExporting(null);
@@ -100,13 +104,15 @@ ${tags}`;
         scale: 2,
         backgroundColor: "#0B1120",
         useCORS: true,
+        allowTaint: true,
+        logging: false,
       });
-      const imgData = canvas.toDataURL("image/jpeg", 0.92);
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
       const pdf = new jsPDF("p", "mm", "a4");
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`31stFile_Update_${post.articleDate.replace(/\s/g, "_")}.pdf`);
+      pdf.save(`31stFile_Analysis_${post.articleDate.replace(/\s/g, "_")}.pdf`);
     } finally {
       setExporting(null);
     }
@@ -135,7 +141,7 @@ ${tags}`;
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-[#0B1120] relative">
 
-      {/* ── Sticky top bar (Mobile optimized) ── */}
+      {/* ── Sticky Top Action Bar ── */}
       <div className="flex-none flex items-center justify-between gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-white/8 bg-[#0F172A]/90 backdrop-blur-md z-10">
         <button
           onClick={onBack}
@@ -194,116 +200,170 @@ ${tags}`;
         </div>
       </div>
 
-      {/* ── Reader scroll area ── */}
-      <div className="flex-1 overflow-y-auto pb-24 sm:pb-16 relative">
-        {/* Centered subtle background watermark */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-[0.06] select-none z-0"
-        >
-          <img
-            src={WATERMARK_LOGO}
-            alt=""
-            className="w-72 sm:w-96 max-w-[80vw] object-contain filter drop-shadow"
-          />
+      {/* ── Main Scroll Area: Card Preview on Top + LinkedIn Studio Below ── */}
+      <div className="flex-1 overflow-y-auto pb-24 sm:pb-16 relative p-3 sm:p-6 flex flex-col items-center">
+        
+        {/* Visual Card Preview Label */}
+        <div className="w-full max-w-[656px] flex items-center justify-between mb-3 px-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-sky-400 font-semibold flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+            Case Law / Analysis Card Preview
+          </span>
+          <span className="text-[10px] text-slate-400 font-mono">Ready to Export (JPEG / PDF)</span>
         </div>
 
-        <article className="max-w-2xl mx-auto px-4 sm:px-6 pt-5 sm:pt-7 relative z-10">
-
-          {/* Header Brand Logo */}
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/6">
+        {/* ── On-Screen Visual Card (matches media_1790708323299.jpg exactly) ── */}
+        <div
+          data-testid="card-analysis-preview"
+          className="w-full max-w-[656px] rounded-2xl overflow-hidden relative shadow-2xl border border-white/10 mb-8"
+          style={{
+            background: "linear-gradient(155deg, #1E293B 0%, #0F172A 100%)",
+            boxShadow: "0 24px 48px -12px rgba(0, 0, 0, 0.5)",
+          }}
+        >
+          {/* Centered stacked watermark logo */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-[0.065] select-none z-0"
+          >
             <img
-              src={HEADER_LOGO}
-              alt="31st File"
-              className="h-8 sm:h-10 object-contain filter drop-shadow-sm"
+              src={WATERMARK_LOGO}
+              alt=""
+              className="w-72 sm:w-96 max-w-[80vw] object-contain"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
             />
-            <span className="text-[10px] sm:text-[11px] font-mono text-sky-400/80 bg-sky-400/10 border border-sky-400/20 px-2.5 py-0.5 rounded-full">
-              Editorial Studio
-            </span>
           </div>
 
-          {/* Meta pills */}
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-4">
-            <span className="text-[10px] sm:text-[11px] font-bold tracking-widest uppercase text-sky-400 bg-sky-400/10 border border-sky-400/20 px-2.5 py-0.5 rounded-full">
-              31stFile Intelligence
-            </span>
-            <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">
-              {post.articleDate}
-            </span>
-            <span className="text-[10px] sm:text-[11px] font-mono text-blue-400 bg-blue-400/10 border border-blue-400/20 px-2.5 py-0.5 rounded-full">
-              {post.articleCategory}
-            </span>
-          </div>
-
-          {/* Headline */}
-          <h1 className="text-xl sm:text-2xl md:text-[28px] font-semibold text-white leading-snug tracking-tight mb-5" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
-            {post.title}
-          </h1>
-
-          {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-sky-500/40 via-blue-500/20 to-transparent mb-6" />
-
-          {/* Summary of Facts */}
-          <section className="mb-6">
-            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-slate-400 mb-2">
-              Summary of Facts
-            </p>
-            <p className="text-sm sm:text-[15px] text-slate-300 leading-relaxed whitespace-pre-line">
-              {post.summaryOfFacts}
-            </p>
-          </section>
-
-          {/* Key Takeaways */}
-          <section className="mb-6">
-            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-amber-500/80 mb-3">
-              Key Takeaways for Finance Leaders
-            </p>
-            <div className="space-y-3">
-              {post.keyTakeaways.map((point, i) => (
-                <div key={i} className="flex gap-3 items-start">
-                  <span className="shrink-0 w-6 h-6 rounded-md bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-[11px] font-bold text-amber-400 mt-0.5">
-                    {i + 1}
-                  </span>
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed m-0">
-                    {point}
-                  </p>
-                </div>
-              ))}
+          <div className="p-5 sm:p-7 relative z-10">
+            {/* Header Brand Logo */}
+            <div className="mb-4">
+              <img
+                src={HEADER_LOGO}
+                alt="31st File"
+                className="h-8 sm:h-9 object-contain filter drop-shadow-sm"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+              />
             </div>
-          </section>
 
-          {/* Firm Perspective */}
-          <section className="mb-6">
-            <div className="rounded-xl border border-white/8 bg-white/[0.03] overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/6 bg-white/[0.02]">
-                <div className="w-1 h-3.5 rounded-full bg-blue-500 shrink-0" />
-                <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-blue-400 m-0">
-                  31st File Advisory Perspective
-                </p>
-              </div>
-              <div className="p-4 sm:p-5">
-                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed whitespace-pre-line m-0 font-medium">
-                  {post.firmPerspective}
-                </p>
-              </div>
+            {/* Meta Row: 31STFILE UPDATE | DATE | CATEGORY */}
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mb-4 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase">
+              <span className="text-sky-400">31STFILE UPDATE</span>
+              <span className="text-slate-600 font-normal">|</span>
+              <span className="text-slate-400 font-normal">{post.articleDate}</span>
+              <span className="text-slate-600 font-normal">|</span>
+              <span className="text-blue-400">{post.articleCategory}</span>
             </div>
-          </section>
 
-          {/* Source link */}
-          <div className="mb-6">
-            <a
-              href={post.articleUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-sky-400 hover:text-sky-300 active:text-sky-200 transition-colors py-1"
+            {/* Headline */}
+            <h1
+              className="text-xl sm:text-2xl md:text-[23px] font-bold text-white leading-snug tracking-tight mb-5"
+              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>Read original regulatory notice</span>
-            </a>
-          </div>
+              {post.title}
+            </h1>
 
+            {/* Summary of Facts Card */}
+            <section
+              className="mb-3.5 rounded-xl p-4 sm:p-5"
+              style={{
+                background: "rgba(255, 255, 255, 0.03)",
+                border: "1px solid rgba(255, 255, 255, 0.07)",
+              }}
+            >
+              <h3 className="text-[10.5px] font-bold tracking-[0.14em] uppercase text-slate-400 mb-2">
+                Summary of Facts
+              </h3>
+              <p className="text-xs sm:text-[13.5px] text-slate-300 leading-relaxed whitespace-pre-line m-0">
+                {post.summaryOfFacts}
+              </p>
+            </section>
+
+            {/* Key Takeaways Card */}
+            <section
+              className="mb-4 rounded-xl p-4 sm:p-5"
+              style={{
+                background: "rgba(255, 255, 255, 0.03)",
+                border: "1px solid rgba(255, 255, 255, 0.07)",
+              }}
+            >
+              <h3 className="text-[10.5px] font-bold tracking-[0.14em] uppercase text-amber-300 mb-3">
+                Key Takeaways
+              </h3>
+              <div className="space-y-2.5">
+                {(post.keyTakeaways || []).map((point, i) => (
+                  <div key={i} className="flex gap-3 items-start">
+                    <span className="shrink-0 w-[22px] h-[22px] rounded-md bg-[#1E293B] border border-slate-700 flex items-center justify-center text-[10.5px] font-bold text-amber-300 mt-0.5 shadow-sm">
+                      {i + 1}
+                    </span>
+                    <p className="text-xs sm:text-[13.5px] text-slate-300 leading-relaxed m-0 font-normal">
+                      {point}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Firm Perspective (Crisp Pure White Card with Blue Border) */}
+            <section
+              className="mb-5 rounded-xl p-4 sm:p-5 bg-white text-slate-900 shadow-md"
+              style={{
+                borderLeft: "4px solid #2563EB",
+              }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <img
+                  src={BLUE_LOGO}
+                  alt=""
+                  className="h-4 object-contain"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                />
+                <h3 className="text-[11px] font-bold tracking-[0.1em] uppercase text-blue-900 m-0">
+                  Firm Perspective
+                </h3>
+              </div>
+              <p className="text-xs sm:text-[13.5px] text-slate-700 leading-relaxed whitespace-pre-line m-0 font-medium">
+                {post.firmPerspective}
+              </p>
+            </section>
+
+            {/* Call To Action Box */}
+            <div className="mt-4 pt-2 text-center">
+              <h4
+                className="text-sm sm:text-[15px] font-semibold text-slate-100 mb-1"
+                style={{ fontFamily: "Georgia, serif" }}
+              >
+                Simplify Your Compliance Journey
+              </h4>
+              <p className="text-[11px] sm:text-xs text-slate-400 mb-3">
+                Join leading founders receiving curated regulatory insights.
+              </p>
+              <div className="inline-block bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs px-5 py-2 rounded-lg shadow-sm mb-4 transition-colors cursor-pointer select-none">
+                Subscribe to Regulatory Briefs
+              </div>
+
+              {/* Footer Links */}
+              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px]">
+                <a
+                  href={post.articleUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sky-400 hover:text-sky-300 font-semibold transition-colors"
+                >
+                  Source Article
+                </a>
+                <span className="text-slate-600">•</span>
+                <span className="text-sky-400 font-medium">31stFile.com</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-sky-400 font-medium">LinkedIn</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Auxiliary Studio Panels (Below Card) ── */}
+        <div className="w-full max-w-[656px] space-y-6">
           {/* ── LinkedIn Studio Box ── */}
-          <section className="mb-8 bg-slate-900/90 border border-sky-500/30 rounded-xl p-4 sm:p-5 shadow-lg">
+          <section className="bg-slate-900/95 border border-sky-500/30 rounded-xl p-4 sm:p-5 shadow-xl">
             <div className="flex items-center justify-between gap-2 mb-3">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="bg-sky-500/20 text-sky-300 text-[11px] px-2 py-0.5 rounded font-mono font-bold">
@@ -315,7 +375,7 @@ ${tags}`;
               </div>
               <button
                 onClick={copyForLinkedIn}
-                className="flex items-center gap-1.5 text-xs font-semibold bg-sky-600 hover:bg-sky-500 active:scale-95 text-white px-3 py-1.5 rounded-md transition-all touch-manipulation"
+                className="flex items-center gap-1.5 text-xs font-semibold bg-sky-600 hover:bg-sky-500 active:scale-95 text-white px-3 py-1.5 rounded-md transition-all touch-manipulation shadow"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? "Copied!" : "Copy Post"}</span>
@@ -338,13 +398,13 @@ ${tags}`;
           </section>
 
           {/* Post to Socials section */}
-          <section className="mb-6">
+          <section className="bg-slate-900/80 border border-white/10 rounded-xl p-4 sm:p-5">
             <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-slate-400 mb-2 flex items-center gap-1.5">
               <Share2 className="w-3 h-3" />
               Webhook Automation
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex-1 flex items-center gap-2 bg-white/4 border border-white/10 rounded-lg px-3 focus-within:ring-1 focus-within:ring-primary/50 transition-shadow">
+              <div className="flex-1 flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 focus-within:ring-1 focus-within:ring-primary/50 transition-shadow">
                 <Link2 className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                 <input
                   type="url"
@@ -380,12 +440,11 @@ ${tags}`;
           </section>
 
           {/* Branding footer */}
-          <div className="pt-6 border-t border-white/6 flex items-center justify-between">
-            <p className="text-xs text-slate-500 font-mono">31stFile.com</p>
-            <p className="text-xs text-slate-500">Financial Hub // IND</p>
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-500">
+            <span className="font-mono">31stFile.com</span>
+            <span>Financial Hub // IND</span>
           </div>
-
-        </article>
+        </div>
       </div>
 
       {/* ── Mobile Sticky Bottom Action Bar ── */}
@@ -408,7 +467,7 @@ ${tags}`;
         </button>
       </div>
 
-      {/* ── Off-screen export card (captured for JPEG / PDF) ── */}
+      {/* ── High-Resolution Off-Screen Export Card (Exact 680px for JPEG / PDF) ── */}
       <div
         style={{
           position: "absolute",
@@ -420,106 +479,250 @@ ${tags}`;
         }}
         aria-hidden="true"
       >
-        <div ref={exportRef} style={{ backgroundColor: "#0B1120", padding: "16px 12px", fontFamily: "'Inter', sans-serif" }}>
-          <div style={{
-            position: "relative",
-            maxWidth: 656,
-            margin: "0 auto",
-            background: "linear-gradient(145deg, #1E293B 0%, #0F172A 100%)",
-            borderRadius: 14,
-            padding: "24px 20px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            boxShadow: "0 16px 32px rgba(0,0,0,0.25)",
+        <div
+          ref={exportRef}
+          style={{
+            width: 680,
+            boxSizing: "border-box",
+            background: "linear-gradient(155deg, #1E293B 0%, #0F172A 100%)",
+            color: "#FFFFFF",
+            fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             overflow: "hidden",
-          }}>
-            {/* Watermark Logo background */}
-            <div
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                opacity: 0.065,
-                pointerEvents: "none",
-                userSelect: "none",
-                width: 380,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 0,
-              }}
-            >
+            borderRadius: 16,
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            padding: "30px 28px",
+            position: "relative",
+          }}
+        >
+          {/* Centered Watermark Logo */}
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              opacity: 0.065,
+              pointerEvents: "none",
+              userSelect: "none",
+              width: 380,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 0,
+            }}
+          >
+            <img
+              src={WATERMARK_LOGO}
+              alt=""
+              style={{ width: "100%", height: "auto", objectFit: "contain" }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+            />
+          </div>
+
+          <div style={{ position: "relative", zIndex: 1 }}>
+            {/* Top Logo */}
+            <div style={{ marginBottom: 16 }}>
               <img
-                src={WATERMARK_LOGO}
-                alt=""
-                style={{ width: "100%", height: "auto", objectFit: "contain" }}
+                src={HEADER_LOGO}
+                alt="31st File"
+                style={{ height: 36, objectFit: "contain", display: "block" }}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
               />
             </div>
 
-            <div style={{ position: "relative", zIndex: 1 }}>
-              <img src={HEADER_LOGO} alt="31st File"
-                style={{ height: 38, marginBottom: 14, objectFit: "contain", display: "block" }}
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+            {/* Meta Row: 31STFILE UPDATE | DATE | CATEGORY */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                marginBottom: 16,
+              }}
+            >
+              <span style={{ color: "#38BDF8" }}>31STFILE UPDATE</span>
+              <span style={{ color: "#475569" }}>|</span>
+              <span style={{ color: "#94A3B8", fontWeight: 500 }}>{post.articleDate}</span>
+              <span style={{ color: "#475569" }}>|</span>
+              <span style={{ color: "#60A5FA" }}>{post.articleCategory}</span>
+            </div>
 
-              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 10px", color: "#7DD3FC", fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", marginBottom: 10, textTransform: "uppercase" }}>
-                <span>31stFile Update</span>
-                <span style={{ color: "#334155" }}>|</span>
-                <span style={{ color: "#94A3B8" }}>{post.articleDate}</span>
-                <span style={{ color: "#334155" }}>|</span>
-                <span style={{ color: "#60A5FA" }}>{post.articleCategory}</span>
+            {/* Headline */}
+            <h1
+              style={{
+                fontFamily: "Georgia, 'Times New Roman', serif",
+                fontSize: 23,
+                fontWeight: 700,
+                margin: "0 0 18px 0",
+                color: "#FFFFFF",
+                lineHeight: 1.35,
+              }}
+            >
+              {post.title}
+            </h1>
+
+            {/* Summary of Facts */}
+            <div
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.03)",
+                border: "1px solid rgba(255, 255, 255, 0.07)",
+                borderRadius: 12,
+                padding: "16px 18px",
+                marginBottom: 14,
+              }}
+            >
+              <h3
+                style={{
+                  margin: "0 0 8px 0",
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  color: "#94A3B8",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.14em",
+                }}
+              >
+                Summary of Facts
+              </h3>
+              <p style={{ color: "#CBD5E1", fontSize: 13.5, lineHeight: 1.7, margin: 0, whiteSpace: "pre-line" }}>
+                {post.summaryOfFacts}
+              </p>
+            </div>
+
+            {/* Key Takeaways */}
+            <div
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.03)",
+                border: "1px solid rgba(255, 255, 255, 0.07)",
+                borderRadius: 12,
+                padding: "16px 18px",
+                marginBottom: 16,
+              }}
+            >
+              <h3
+                style={{
+                  margin: "0 0 12px 0",
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  color: "#FCD34D",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.14em",
+                }}
+              >
+                Key Takeaways
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {(post.keyTakeaways || []).map((point, i) => (
+                  <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                    <span
+                      style={{
+                        minWidth: 22,
+                        height: 22,
+                        backgroundColor: "#1E293B",
+                        border: "1px solid #334155",
+                        borderRadius: 6,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#FCD34D",
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                    <p style={{ color: "#CBD5E1", margin: 0, fontSize: 13.5, lineHeight: 1.6 }}>
+                      {point}
+                    </p>
+                  </div>
+                ))}
               </div>
+            </div>
 
-              <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 22, fontWeight: 600, margin: "0 0 16px 0", color: "#FFFFFF", lineHeight: 1.3 }}>
-                {post.title}
-              </h1>
-
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "14px 16px", marginBottom: 10 }}>
-                <h3 style={{ margin: "0 0 8px 0", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.12em" }}>Summary of Facts</h3>
-                <p style={{ color: "#CBD5E1", fontSize: 13, lineHeight: 1.7, margin: 0, whiteSpace: "pre-line" }}>{post.summaryOfFacts}</p>
+            {/* Firm Perspective (Crisp Pure White Card with Blue Border) */}
+            <div
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderLeft: "4px solid #2563EB",
+                borderRadius: 12,
+                padding: "16px 18px",
+                marginBottom: 18,
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <img
+                  src={BLUE_LOGO}
+                  alt=""
+                  style={{ height: 16, objectFit: "contain" }}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                />
+                <h3
+                  style={{
+                    margin: 0,
+                    color: "#1E40AF",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  Firm Perspective
+                </h3>
               </div>
+              <p style={{ color: "#334155", fontSize: 13.5, fontWeight: 500, lineHeight: 1.7, margin: 0, whiteSpace: "pre-line" }}>
+                {post.firmPerspective}
+              </p>
+            </div>
 
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "14px 16px", marginBottom: 10 }}>
-                <h3 style={{ margin: "0 0 10px 0", fontSize: 10, fontWeight: 700, color: "#FCD34D", textTransform: "uppercase", letterSpacing: "0.12em" }}>Key Takeaways</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {post.keyTakeaways.map((point, i) => (
-                    <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                      <span style={{ minWidth: 22, height: 22, background: "#1E293B", border: "1px solid #334155", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", color: "#FCD34D", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
-                      <p style={{ color: "#CBD5E1", margin: 0, fontSize: 13, lineHeight: 1.6 }}>{point}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderLeft: "4px solid #2563EB", borderRadius: 9, padding: "14px 16px", marginBottom: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                  <img src={HEADER_LOGO} alt="31st File" style={{ height: 18, objectFit: "contain" }}
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
-                  <h3 style={{ margin: 0, color: "#1E40AF", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Firm Perspective</h3>
-                </div>
-                <p style={{ color: "#334155", fontSize: 13, fontWeight: 500, lineHeight: 1.7, margin: 0, whiteSpace: "pre-line" }}>{post.firmPerspective}</p>
-              </div>
-
-            <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
-              <h4 style={{ color: "#F8FAFC", fontSize: 13, margin: "0 0 4px 0", fontFamily: "Georgia, serif" }}>Simplify Your Compliance Journey</h4>
-              <p style={{ color: "#94A3B8", fontSize: 11, margin: "0 0 12px 0" }}>Join leading founders receiving curated regulatory insights.</p>
-              <div style={{ display: "inline-block", background: "#FFFFFF", color: "#0F172A", padding: "7px 18px", borderRadius: 7, fontWeight: 700, fontSize: 11, marginBottom: 12 }}>
+            {/* Call To Action Box */}
+            <div style={{ marginTop: 16, paddingTop: 6, textAlign: "center" }}>
+              <h4
+                style={{
+                  color: "#F8FAFC",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  margin: "0 0 4px 0",
+                  fontFamily: "Georgia, serif",
+                }}
+              >
+                Simplify Your Compliance Journey
+              </h4>
+              <p style={{ color: "#94A3B8", fontSize: 11.5, margin: "0 0 12px 0" }}>
+                Join leading founders receiving curated regulatory insights.
+              </p>
+              <div
+                style={{
+                  display: "inline-block",
+                  backgroundColor: "#FFFFFF",
+                  color: "#0F172A",
+                  padding: "8px 22px",
+                  borderRadius: 8,
+                  fontWeight: 700,
+                  fontSize: 12,
+                  marginBottom: 16,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                }}
+              >
                 Subscribe to Regulatory Briefs
               </div>
-              <div style={{ background: "rgba(15,23,42,0.5)", borderRadius: 8, padding: "10px 14px" }}>
-                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px 16px" }}>
-                  <span style={{ color: "#7DD3FC", fontSize: 11, fontWeight: 600 }}>Source Article</span>
-                  <span style={{ color: "#334155" }}>•</span>
-                  <span style={{ color: "#7DD3FC", fontSize: 11, fontWeight: 500 }}>31stFile.com</span>
-                  <span style={{ color: "#334155" }}>•</span>
-                  <span style={{ color: "#7DD3FC", fontSize: 11, fontWeight: 500 }}>LinkedIn</span>
-                </div>
+
+              {/* Footer Links */}
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px 16px", fontSize: 11 }}>
+                <span style={{ color: "#38BDF8", fontWeight: 600 }}>Source Article</span>
+                <span style={{ color: "#475569" }}>•</span>
+                <span style={{ color: "#38BDF8", fontWeight: 500 }}>31stFile.com</span>
+                <span style={{ color: "#475569" }}>•</span>
+                <span style={{ color: "#38BDF8", fontWeight: 500 }}>LinkedIn</span>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    </div>
   );
 }
+

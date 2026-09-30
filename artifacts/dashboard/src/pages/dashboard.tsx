@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Loader2, Search, Database, RefreshCw, AlertCircle, ListChecks, X, KeyRound } from "lucide-react";
+import { Loader2, Search, Database, RefreshCw, AlertCircle, ListChecks, X, KeyRound, Calendar, AlertTriangle } from "lucide-react";
 import { useGetArticles, useGetArticlesSummary, getGetArticlesQueryKey, getGetArticlesSummaryQueryKey } from "@workspace/api-client-react";
 import type { Article, GeneratedPost } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
@@ -8,9 +8,13 @@ import ArticleCard from "@/components/article-card";
 import QueueSidebar from "@/components/queue-sidebar";
 import CategoryFilter from "@/components/category-filter";
 import PostOutputView from "@/components/post-output-view";
+import NewsArticleView from "@/components/news-article-view";
+import RegularUpdateView from "@/components/regular-update-view";
 import LlmSettingsModal from "@/components/llm-settings-modal";
+import ComplianceCalendarView from "@/components/compliance-calendar-view";
+import ComplianceOverrideModal from "@/components/compliance-override-modal";
 
-type View = "feed" | "output";
+type View = "feed" | "output" | "calendar";
 
 export default function Dashboard() {
   const [date, setDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
@@ -21,7 +25,30 @@ export default function Dashboard() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [dismissedNotificationIds, setDismissedNotificationIds] = useState<string[]>([]);
+  const [overrideModalOpen, setOverrideModalOpen] = useState(false);
+  const [overrideModalInitial, setOverrideModalInitial] = useState<{
+    title: string;
+    category: string;
+    sourceUrl: string;
+    note: string;
+  } | null>(null);
   const { toast } = useToast();
+
+  const EXTENSION_KEYWORD_REGEX = /\b(extend|extended|due\s+date|last\s+date|time\s+limit)\b/i;
+
+  const inferComplianceCategory = (title: string): string => {
+    const lower = title.toLowerCase();
+    if (lower.includes("gst") || lower.includes("gstr")) return "GST";
+    if (lower.includes("tds") || lower.includes("tcs") || lower.includes("26q") || lower.includes("24q")) return "TDS";
+    if (lower.includes("advance tax")) return "Advance Tax";
+    if (lower.includes("income tax") || lower.includes("itr") || lower.includes("3cd") || lower.includes("3ca")) return "Income Tax";
+    if (lower.includes("roc") || lower.includes("mca") || lower.includes("aoc-4") || lower.includes("mgt-7") || lower.includes("dir-3")) return "ROC";
+    if (lower.includes("llp")) return "LLP";
+    if (lower.includes("fema") || lower.includes("fla") || lower.includes("ecb")) return "FEMA";
+    if (lower.includes("pf") || lower.includes("esi") || lower.includes("epfo") || lower.includes("esic")) return "PF-ESI";
+    return "GST";
+  };
 
   const { data: articles, isLoading, refetch, isFetching } = useGetArticles(
     { date },
@@ -78,10 +105,40 @@ export default function Dashboard() {
 
   const isLoadingData = isLoading || isFetching || isFetchingSummary;
 
+  const detectedExtensionArticle = articles
+    ? articles.find(
+        (a) =>
+          !dismissedNotificationIds.includes(a.id) &&
+          (EXTENSION_KEYWORD_REGEX.test(a.title) || EXTENSION_KEYWORD_REGEX.test(a.excerpt)),
+      )
+    : null;
+
   if (view === "output" && generatedPost) {
+    if (generatedPost.postFormat === "news") {
+      return (
+        <div className="flex h-[100dvh] w-full overflow-hidden bg-background text-foreground font-sans">
+          <NewsArticleView post={generatedPost} onBack={() => setView("feed")} />
+        </div>
+      );
+    }
+    if (generatedPost.postFormat === "update") {
+      return (
+        <div className="flex h-[100dvh] w-full overflow-hidden bg-background text-foreground font-sans">
+          <RegularUpdateView post={generatedPost} onBack={() => setView("feed")} />
+        </div>
+      );
+    }
     return (
       <div className="flex h-[100dvh] w-full overflow-hidden bg-background text-foreground font-sans">
         <PostOutputView post={generatedPost} onBack={() => setView("feed")} />
+      </div>
+    );
+  }
+
+  if (view === "calendar") {
+    return (
+      <div className="flex h-[100dvh] w-full overflow-hidden bg-background text-foreground font-sans">
+        <ComplianceCalendarView onBack={() => setView("feed")} />
       </div>
     );
   }
@@ -109,8 +166,17 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Mobile buttons in header: Settings + Queue */}
+            {/* Mobile buttons in header: Calendar + Settings + Queue */}
             <div className="sm:hidden flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => setView("calendar")}
+                aria-label="Compliance Calendar"
+                title="Compliance Calendar"
+                data-testid="button-open-calendar-mobile"
+                className="p-2 rounded-lg bg-sky-950/60 hover:bg-sky-900/60 border border-sky-500/40 text-sky-400 hover:text-white transition-colors touch-manipulation active:scale-95"
+              >
+                <Calendar className="w-3.5 h-3.5" />
+              </button>
               <button
                 onClick={() => setSettingsOpen(true)}
                 aria-label="LLM API Settings"
@@ -135,6 +201,17 @@ export default function Dashboard() {
 
           {/* Controls Row */}
           <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+            <button
+              onClick={() => setView("calendar")}
+              data-testid="button-open-calendar"
+              title="Open Statutory Compliance Calendar"
+              className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 border border-sky-400/30 px-3 py-2 rounded-lg text-xs font-semibold text-white shadow-sm transition-all min-h-[38px] touch-manipulation active:scale-95"
+            >
+              <Calendar className="w-4 h-4 text-sky-200" />
+              <span className="hidden lg:inline">Compliance Calendar</span>
+              <span className="lg:hidden">Calendar</span>
+            </button>
+
             <button
               onClick={() => setSettingsOpen(true)}
               data-testid="button-open-settings"
@@ -174,6 +251,52 @@ export default function Dashboard() {
 
         {/* Feed container */}
         <div className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 space-y-3.5 sm:space-y-4 pb-24 md:pb-6">
+          {/* Statutory Extension Detection Alert Banner */}
+          {detectedExtensionArticle && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-amber-950/40 border border-amber-600/60 text-amber-200 shadow-sm animate-in fade-in">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono uppercase tracking-wider font-bold bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30">
+                      Due Date Update Detected
+                    </span>
+                    <span className="text-[11px] text-amber-300/80 truncate">
+                      {detectedExtensionArticle.source || "Official Notification"}
+                    </span>
+                  </div>
+                  <p className="text-xs font-semibold text-white mt-1 leading-snug line-clamp-2">
+                    {detectedExtensionArticle.title}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                <button
+                  onClick={() => {
+                    setOverrideModalInitial({
+                      title: detectedExtensionArticle.title,
+                      category: inferComplianceCategory(detectedExtensionArticle.title),
+                      sourceUrl: detectedExtensionArticle.url,
+                      note: `Notification: ${detectedExtensionArticle.title}`,
+                    });
+                    setOverrideModalOpen(true);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-colors"
+                >
+                  Create Override
+                </button>
+                <button
+                  onClick={() =>
+                    setDismissedNotificationIds((prev) => [...prev, detectedExtensionArticle.id])
+                  }
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          )}
+
           {summary && !isLoadingData && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1 border-b border-border/40">
               <CategoryFilter
@@ -326,6 +449,21 @@ export default function Dashboard() {
         isOpen={settingsOpen}
         onClose={() => setSettingsOpen(false)}
       />
+
+      {/* ── Compliance Override Creation Modal ── */}
+      {overrideModalOpen && (
+        <ComplianceOverrideModal
+          isOpen={overrideModalOpen}
+          onClose={() => {
+            setOverrideModalOpen(false);
+            setOverrideModalInitial(null);
+          }}
+          initialTitle={overrideModalInitial?.title || ""}
+          initialCategory={overrideModalInitial?.category || "GST"}
+          initialSourceUrl={overrideModalInitial?.sourceUrl || ""}
+          initialNote={overrideModalInitial?.note || ""}
+        />
+      )}
     </div>
   );
 }

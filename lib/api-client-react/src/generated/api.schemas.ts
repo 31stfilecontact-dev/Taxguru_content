@@ -79,22 +79,91 @@ export interface SummarizeArticlesInput {
   articles: Article[];
 }
 
+/**
+ * Format of the post to generate
+ */
+export type GeneratePostInputPostFormat = typeof GeneratePostInputPostFormat[keyof typeof GeneratePostInputPostFormat];
+
+
+export const GeneratePostInputPostFormat = {
+  analysis: 'analysis',
+  news: 'news',
+  update: 'update',
+} as const;
+
 export interface GeneratePostInput {
   article: Article;
   /** Optional custom firm perspective to inject into the prompt */
   firmInsight?: string;
+  /** Format of the post to generate */
+  postFormat?: GeneratePostInputPostFormat;
 }
 
+export type GeneratedPostPostFormat = typeof GeneratedPostPostFormat[keyof typeof GeneratedPostPostFormat];
+
+
+export const GeneratedPostPostFormat = {
+  analysis: 'analysis',
+  news: 'news',
+  update: 'update',
+} as const;
+
 export interface GeneratedPost {
+  postFormat?: GeneratedPostPostFormat;
   title: string;
-  summaryOfFacts: string;
-  keyTakeaways: string[];
-  firmPerspective: string;
+  summaryOfFacts?: string;
+  keyTakeaways?: string[];
+  firmPerspective?: string;
   articleCategory: string;
   articleDate: string;
   articleUrl: string;
   hashtags?: string[];
   linkedInPost?: string;
+  headline?: string;
+  summary?: string;
+  whyItMatters?: string;
+  whatChanged?: string;
+  effectiveDate?: string;
+  appliesTo?: string;
+  actionRequired?: string;
+}
+
+export interface ComplianceItem {
+  id: string;
+  title: string;
+  category: string;
+  /** YYYY-MM-DD */
+  dueDate: string;
+  /** Original statutory date if overridden */
+  originalDate?: string | null;
+  isExtended: boolean;
+  isCustom: boolean;
+  conditional: boolean;
+  conditionNote?: string | null;
+  provisional: boolean;
+  note?: string | null;
+  sourceUrl?: string | null;
+  overrideId?: number | null;
+}
+
+export interface ComplianceOverrideItem {
+  id: number;
+  title: string;
+  category: string;
+  originalDate?: string | null;
+  newDate: string;
+  note?: string | null;
+  sourceUrl?: string | null;
+  createdAt: string;
+}
+
+export interface CreateComplianceOverrideInput {
+  title: string;
+  category: string;
+  originalDate?: string | null;
+  newDate: string;
+  note?: string | null;
+  sourceUrl?: string | null;
 }
 
 export type GetArticlesParams = {
@@ -111,5 +180,22 @@ export type GetArticlesSummaryParams = {
  * @pattern ^\d{4}-\d{2}-\d{2}$
  */
 date?: string;
+};
+
+export type GetComplianceCalendarParams = {
+/**
+ * Calendar year (defaults to current IST year)
+ */
+year?: number;
+/**
+ * Calendar month 1-12 (defaults to current IST month)
+ * @minimum 1
+ * @maximum 12
+ */
+month?: number;
+};
+
+export type DeleteComplianceOverride200 = {
+  success: boolean;
 };
 

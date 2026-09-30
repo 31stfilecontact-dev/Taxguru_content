@@ -5,15 +5,24 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { GeneratedPostPostFormat } from './generatedPostPostFormat';
 
 export interface GeneratedPost {
+  postFormat?: GeneratedPostPostFormat;
   title: string;
-  summaryOfFacts: string;
-  keyTakeaways: string[];
-  firmPerspective: string;
+  summaryOfFacts?: string;
+  keyTakeaways?: string[];
+  firmPerspective?: string;
   articleCategory: string;
   articleDate: string;
   articleUrl: string;
   hashtags?: string[];
   linkedInPost?: string;
+  headline?: string;
+  summary?: string;
+  whyItMatters?: string;
+  whatChanged?: string;
+  effectiveDate?: string;
+  appliesTo?: string;
+  actionRequired?: string;
 }

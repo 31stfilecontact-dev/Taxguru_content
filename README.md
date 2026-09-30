@@ -47,7 +47,7 @@ The repository includes a ready-to-deploy `vercel.json` configuration that unite
    - **Framework Preset**: `Vite`
    - **Root Directory**: `./`
    - **Build Command**: `pnpm run build`
-   - **Output Directory**: `artifacts/dashboard/dist/public`
+   - **Output Directory**: `dist`
 
 4. **Environment Variables (Optional)**:
    - `ADMIN_PASSWORD`: Your admin passcode for the LLM settings modal (default: `admin31`).

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Article, GeneratedPost } from "@workspace/api-client-react";
 import { X, Zap, FileText, Loader2, Pencil, ChevronDown, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,38 @@ interface QueueSidebarProps {
   onClose?: () => void;
 }
 
+export type PostFormat = "analysis" | "news" | "update";
+
+function getSuggestedFormat(article?: Article): PostFormat {
+  if (!article) return "analysis";
+  const cat = (article.category || "").toLowerCase();
+  const src = (article.source || "").toLowerCase();
+  if (cat.includes("case law") || cat.includes("judiciary") || src.includes("court") || src.includes("itat")) {
+    return "analysis";
+  }
+  if (
+    cat.includes("govt") ||
+    cat.includes("notification") ||
+    cat.includes("compliance") ||
+    src.includes("notification") ||
+    src.includes("cbdt") ||
+    src.includes("cbic") ||
+    src.includes("mca")
+  ) {
+    return "update";
+  }
+  if (
+    cat.includes("financial") ||
+    cat.includes("news") ||
+    src.includes("news") ||
+    src.includes("livemint") ||
+    src.includes("economic times")
+  ) {
+    return "news";
+  }
+  return "analysis";
+}
+
 export default function QueueSidebar({
   articles,
   onRemove,
@@ -18,9 +50,27 @@ export default function QueueSidebar({
   isMobile = false,
   onClose,
 }: QueueSidebarProps) {
+  const [selectedFormat, setSelectedFormat] = useState<PostFormat | null>(null);
+  const [lastArticleId, setLastArticleId] = useState<string | null>(null);
   const [firmInsight, setFirmInsight] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const topArticle = articles[0];
+  const topArticleId = topArticle?.id || null;
+
+  // Auto pre-select format based on category whenever top article changes, unless manually set for this article
+  const currentFormat: PostFormat = useMemo(() => {
+    if (selectedFormat && lastArticleId === topArticleId) {
+      return selectedFormat;
+    }
+    return getSuggestedFormat(topArticle);
+  }, [selectedFormat, lastArticleId, topArticleId, topArticle]);
+
+  const handleSelectFormat = (fmt: PostFormat) => {
+    setSelectedFormat(fmt);
+    setLastArticleId(topArticleId);
+  };
 
   const handleGenerate = async () => {
     if (articles.length === 0) return;
@@ -34,6 +84,7 @@ export default function QueueSidebar({
         body: JSON.stringify({
           article: articles[0],
           firmInsight: firmInsight.trim() || undefined,
+          postFormat: currentFormat,
         }),
       });
 
@@ -142,18 +193,73 @@ export default function QueueSidebar({
 
       {/* Firm insight + generate button */}
       <div className="flex-none p-3.5 border-t border-sidebar-border bg-card/40 space-y-2.5">
-        <label className="flex items-center gap-1.5 text-xs font-semibold text-sky-400">
-          <Pencil className="w-3.5 h-3.5" />
-          <span>Custom Advisory Perspective (Optional)</span>
-        </label>
-        <textarea
-          placeholder="Add custom CA perspective, audit notes, or firm angle..."
-          value={firmInsight}
-          onChange={(e) => setFirmInsight(e.target.value)}
-          data-testid="textarea-firm-insight"
-          rows={isMobile ? 2 : 3}
-          className="w-full text-xs bg-background border border-border rounded-lg p-2.5 resize-none focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground/60 transition-shadow"
-        />
+        {/* Post Format Selector */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-semibold text-slate-300">
+              Post Format
+            </label>
+            <span className="text-[9px] font-mono text-sky-400 bg-sky-950/80 border border-sky-800/60 px-1.5 py-0.2 rounded">
+              Auto: {currentFormat === "analysis" ? "Case Law / Analysis" : currentFormat === "news" ? "News" : "Update"}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-1 p-1 bg-secondary/80 rounded-lg border border-border">
+            <button
+              type="button"
+              onClick={() => handleSelectFormat("analysis")}
+              data-testid="format-select-analysis"
+              className={`py-1.5 px-2 rounded-md text-[11px] font-medium transition-all ${
+                currentFormat === "analysis"
+                  ? "bg-sky-600 text-white shadow-sm font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Analysis
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSelectFormat("news")}
+              data-testid="format-select-news"
+              className={`py-1.5 px-2 rounded-md text-[11px] font-medium transition-all ${
+                currentFormat === "news"
+                  ? "bg-emerald-600 text-white shadow-sm font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              News
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSelectFormat("update")}
+              data-testid="format-select-update"
+              className={`py-1.5 px-2 rounded-md text-[11px] font-medium transition-all ${
+                currentFormat === "update"
+                  ? "bg-amber-600 text-white shadow-sm font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Update
+            </button>
+          </div>
+        </div>
+
+        {/* Firm insight (specific to Analysis format) */}
+        {currentFormat === "analysis" && (
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-sky-400">
+              <Pencil className="w-3.5 h-3.5" />
+              <span>Custom Advisory Perspective (Optional)</span>
+            </label>
+            <textarea
+              placeholder="Add custom CA perspective, audit notes, or firm angle..."
+              value={firmInsight}
+              onChange={(e) => setFirmInsight(e.target.value)}
+              data-testid="textarea-firm-insight"
+              rows={isMobile ? 2 : 3}
+              className="w-full text-xs bg-background border border-border rounded-lg p-2.5 resize-none focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground/60 transition-shadow"
+            />
+          </div>
+        )}
 
         {error && <p className="text-xs text-destructive font-medium">{error}</p>}
 

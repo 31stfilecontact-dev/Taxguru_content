@@ -140,6 +140,8 @@ export const SendGeminiMessageBody = zod.object({
 /**
  * @summary Generate a Day 3 editorial post from a staged article
  */
+export const generatePostBodyPostFormatDefault = `analysis`;
+
 export const GeneratePostBody = zod.object({
   "article": zod.object({
   "id": zod.string(),
@@ -150,19 +152,30 @@ export const GeneratePostBody = zod.object({
   "source": zod.string().optional(),
   "excerpt": zod.string()
 }),
-  "firmInsight": zod.string().optional().describe('Optional custom firm perspective to inject into the prompt')
+  "firmInsight": zod.string().optional().describe('Optional custom firm perspective to inject into the prompt'),
+  "postFormat": zod.enum(['analysis', 'news', 'update']).default(generatePostBodyPostFormatDefault).describe('Format of the post to generate')
 })
 
+export const generatePostResponsePostFormatDefault = `analysis`;
+
 export const GeneratePostResponse = zod.object({
+  "postFormat": zod.enum(['analysis', 'news', 'update']).default(generatePostResponsePostFormatDefault),
   "title": zod.string(),
-  "summaryOfFacts": zod.string(),
-  "keyTakeaways": zod.array(zod.string()),
-  "firmPerspective": zod.string(),
+  "summaryOfFacts": zod.string().optional(),
+  "keyTakeaways": zod.array(zod.string()).optional(),
+  "firmPerspective": zod.string().optional(),
   "articleCategory": zod.string(),
   "articleDate": zod.string(),
   "articleUrl": zod.string(),
   "hashtags": zod.array(zod.string()).optional(),
-  "linkedInPost": zod.string().optional()
+  "linkedInPost": zod.string().optional(),
+  "headline": zod.string().optional(),
+  "summary": zod.string().optional(),
+  "whyItMatters": zod.string().optional(),
+  "whatChanged": zod.string().optional(),
+  "effectiveDate": zod.string().optional(),
+  "appliesTo": zod.string().optional(),
+  "actionRequired": zod.string().optional()
 })
 
 
@@ -179,6 +192,78 @@ export const SummarizeArticlesBody = zod.object({
   "source": zod.string().optional(),
   "excerpt": zod.string()
 }))
+})
+
+
+/**
+ * Returns merged list of statutory deadlines and active manual overrides for the specified month
+ * @summary Get statutory compliance calendar for a given month
+ */
+export const getComplianceCalendarQueryMonthMax = 12;
+
+
+
+export const GetComplianceCalendarQueryParams = zod.object({
+  "year": zod.coerce.number().optional().describe('Calendar year (defaults to current IST year)'),
+  "month": zod.coerce.number().min(1).max(getComplianceCalendarQueryMonthMax).optional().describe('Calendar month 1-12 (defaults to current IST month)')
+})
+
+export const GetComplianceCalendarResponseItem = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "dueDate": zod.string().describe('YYYY-MM-DD'),
+  "originalDate": zod.string().nullish().describe('Original statutory date if overridden'),
+  "isExtended": zod.boolean(),
+  "isCustom": zod.boolean(),
+  "conditional": zod.boolean(),
+  "conditionNote": zod.string().nullish(),
+  "provisional": zod.boolean(),
+  "note": zod.string().nullish(),
+  "sourceUrl": zod.string().nullish(),
+  "overrideId": zod.number().nullish()
+})
+export const GetComplianceCalendarResponse = zod.array(GetComplianceCalendarResponseItem)
+
+
+/**
+ * @summary Get all compliance date overrides
+ */
+export const GetComplianceOverridesResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "originalDate": zod.string().nullish(),
+  "newDate": zod.string(),
+  "note": zod.string().nullish(),
+  "sourceUrl": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const GetComplianceOverridesResponse = zod.array(GetComplianceOverridesResponseItem)
+
+
+/**
+ * @summary Create or set a date override / standalone compliance entry
+ */
+export const CreateComplianceOverrideBody = zod.object({
+  "title": zod.string(),
+  "category": zod.string(),
+  "originalDate": zod.string().nullish(),
+  "newDate": zod.string(),
+  "note": zod.string().nullish(),
+  "sourceUrl": zod.string().nullish()
+})
+
+
+/**
+ * @summary Delete an override or standalone compliance item
+ */
+export const DeleteComplianceOverrideParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteComplianceOverrideResponse = zod.object({
+  "success": zod.boolean()
 })
 
 

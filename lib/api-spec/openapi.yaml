@@ -14,6 +14,8 @@ tags:
     description: Tax & regulatory article feeds
   - name: gemini
     description: Gemini AI chat and image operations
+  - name: compliance
+    description: Indian statutory compliance calendar and overrides
 paths:
   /healthz:
     get:
@@ -246,6 +248,92 @@ paths:
           description: SSE stream of article summaries
           content:
             text/event-stream: {}
+  /compliance/calendar:
+    get:
+      operationId: getComplianceCalendar
+      tags: [compliance]
+      summary: Get statutory compliance calendar for a given month
+      description: Returns merged list of statutory deadlines and active manual overrides for the specified month
+      parameters:
+        - name: year
+          in: query
+          required: false
+          description: Calendar year (defaults to current IST year)
+          schema:
+            type: integer
+            example: 2025
+        - name: month
+          in: query
+          required: false
+          description: Calendar month 1-12 (defaults to current IST month)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+            example: 5
+      responses:
+        "200":
+          description: List of compliance deadlines for the month
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ComplianceItem"
+  /compliance/overrides:
+    get:
+      operationId: getComplianceOverrides
+      tags: [compliance]
+      summary: Get all compliance date overrides
+      responses:
+        "200":
+          description: List of active overrides
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ComplianceOverrideItem"
+    post:
+      operationId: createComplianceOverride
+      tags: [compliance]
+      summary: Create or set a date override / standalone compliance entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateComplianceOverrideInput"
+      responses:
+        "201":
+          description: Created override
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceOverrideItem"
+  /compliance/overrides/{id}:
+    delete:
+      operationId: deleteComplianceOverride
+      tags: [compliance]
+      summary: Delete an override or standalone compliance item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Override deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required:
+                  - success
 components:
   schemas:
     HealthStatus:
@@ -424,11 +512,20 @@ components:
         firmInsight:
           type: string
           description: Optional custom firm perspective to inject into the prompt
+        postFormat:
+          type: string
+          enum: [analysis, news, update]
+          default: analysis
+          description: Format of the post to generate
       required:
         - article
     GeneratedPost:
       type: object
       properties:
+        postFormat:
+          type: string
+          enum: [analysis, news, update]
+          default: analysis
         title:
           type: string
         summaryOfFacts:
@@ -451,11 +548,118 @@ components:
             type: string
         linkedInPost:
           type: string
+        headline:
+          type: string
+        summary:
+          type: string
+        whyItMatters:
+          type: string
+        whatChanged:
+          type: string
+        effectiveDate:
+          type: string
+        appliesTo:
+          type: string
+        actionRequired:
+          type: string
       required:
         - title
-        - summaryOfFacts
-        - keyTakeaways
-        - firmPerspective
         - articleCategory
         - articleDate
         - articleUrl
+    ComplianceItem:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        dueDate:
+          type: string
+          description: YYYY-MM-DD
+        originalDate:
+          type: string
+          nullable: true
+          description: Original statutory date if overridden
+        isExtended:
+          type: boolean
+        isCustom:
+          type: boolean
+        conditional:
+          type: boolean
+        conditionNote:
+          type: string
+          nullable: true
+        provisional:
+          type: boolean
+        note:
+          type: string
+          nullable: true
+        sourceUrl:
+          type: string
+          nullable: true
+        overrideId:
+          type: integer
+          nullable: true
+      required:
+        - id
+        - title
+        - category
+        - dueDate
+        - isExtended
+        - isCustom
+        - conditional
+        - provisional
+    ComplianceOverrideItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        category:
+          type: string
+        originalDate:
+          type: string
+          nullable: true
+        newDate:
+          type: string
+        note:
+          type: string
+          nullable: true
+        sourceUrl:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - title
+        - category
+        - newDate
+        - createdAt
+    CreateComplianceOverrideInput:
+      type: object
+      properties:
+        title:
+          type: string
+        category:
+          type: string
+        originalDate:
+          type: string
+          nullable: true
+        newDate:
+          type: string
+        note:
+          type: string
+          nullable: true
+        sourceUrl:
+          type: string
+          nullable: true
+      required:
+        - title
+        - category
+        - newDate
+

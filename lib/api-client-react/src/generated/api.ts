@@ -22,6 +22,10 @@ import type {
 import type {
   Article,
   ArticlesSummary,
+  ComplianceItem,
+  ComplianceOverrideItem,
+  CreateComplianceOverrideInput,
+  DeleteComplianceOverride200,
   ErrorResponse,
   GeminiConversation,
   GeminiConversationInput,
@@ -33,6 +37,7 @@ import type {
   GeneratedPost,
   GetArticlesParams,
   GetArticlesSummaryParams,
+  GetComplianceCalendarParams,
   HealthStatus,
   SummarizeArticlesInput
 } from './api.schemas';
@@ -881,5 +886,308 @@ export const useSummarizeArticles = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getSummarizeArticlesMutationOptions(options));
+    }
+
+export const getGetComplianceCalendarUrl = (params?: GetComplianceCalendarParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/compliance/calendar?${stringifiedParams}` : `/api/compliance/calendar`
+}
+
+/**
+ * Returns merged list of statutory deadlines and active manual overrides for the specified month
+ * @summary Get statutory compliance calendar for a given month
+ */
+export const getComplianceCalendar = async (params?: GetComplianceCalendarParams, options?: RequestInit): Promise<ComplianceItem[]> => {
+
+  return customFetch<ComplianceItem[]>(getGetComplianceCalendarUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetComplianceCalendarQueryKey = (params?: GetComplianceCalendarParams,) => {
+    return [
+    `/api/compliance/calendar`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetComplianceCalendarQueryOptions = <TData = Awaited<ReturnType<typeof getComplianceCalendar>>, TError = ErrorType<unknown>>(params?: GetComplianceCalendarParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceCalendar>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetComplianceCalendarQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getComplianceCalendar>>> = ({ signal }) => getComplianceCalendar(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getComplianceCalendar>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetComplianceCalendarQueryResult = NonNullable<Awaited<ReturnType<typeof getComplianceCalendar>>>
+export type GetComplianceCalendarQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get statutory compliance calendar for a given month
+ */
+
+export function useGetComplianceCalendar<TData = Awaited<ReturnType<typeof getComplianceCalendar>>, TError = ErrorType<unknown>>(
+ params?: GetComplianceCalendarParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceCalendar>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetComplianceCalendarQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetComplianceOverridesUrl = () => {
+
+
+
+
+  return `/api/compliance/overrides`
+}
+
+/**
+ * @summary Get all compliance date overrides
+ */
+export const getComplianceOverrides = async ( options?: RequestInit): Promise<ComplianceOverrideItem[]> => {
+
+  return customFetch<ComplianceOverrideItem[]>(getGetComplianceOverridesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetComplianceOverridesQueryKey = () => {
+    return [
+    `/api/compliance/overrides`
+    ] as const;
+    }
+
+
+export const getGetComplianceOverridesQueryOptions = <TData = Awaited<ReturnType<typeof getComplianceOverrides>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceOverrides>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetComplianceOverridesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getComplianceOverrides>>> = ({ signal }) => getComplianceOverrides({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getComplianceOverrides>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetComplianceOverridesQueryResult = NonNullable<Awaited<ReturnType<typeof getComplianceOverrides>>>
+export type GetComplianceOverridesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all compliance date overrides
+ */
+
+export function useGetComplianceOverrides<TData = Awaited<ReturnType<typeof getComplianceOverrides>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceOverrides>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetComplianceOverridesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateComplianceOverrideUrl = () => {
+
+
+
+
+  return `/api/compliance/overrides`
+}
+
+/**
+ * @summary Create or set a date override / standalone compliance entry
+ */
+export const createComplianceOverride = async (createComplianceOverrideInput: CreateComplianceOverrideInput, options?: RequestInit): Promise<ComplianceOverrideItem> => {
+
+  return customFetch<ComplianceOverrideItem>(getCreateComplianceOverrideUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createComplianceOverrideInput,)
+  }
+);}
+
+
+
+
+export const getCreateComplianceOverrideMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createComplianceOverride>>, TError,{data: BodyType<CreateComplianceOverrideInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createComplianceOverride>>, TError,{data: BodyType<CreateComplianceOverrideInput>}, TContext> => {
+
+const mutationKey = ['createComplianceOverride'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createComplianceOverride>>, {data: BodyType<CreateComplianceOverrideInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createComplianceOverride(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateComplianceOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof createComplianceOverride>>>
+    export type CreateComplianceOverrideMutationBody = BodyType<CreateComplianceOverrideInput>
+    export type CreateComplianceOverrideMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create or set a date override / standalone compliance entry
+ */
+export const useCreateComplianceOverride = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createComplianceOverride>>, TError,{data: BodyType<CreateComplianceOverrideInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createComplianceOverride>>,
+        TError,
+        {data: BodyType<CreateComplianceOverrideInput>},
+        TContext
+      > => {
+      return useMutation(getCreateComplianceOverrideMutationOptions(options));
+    }
+
+export const getDeleteComplianceOverrideUrl = (id: number,) => {
+
+
+
+
+  return `/api/compliance/overrides/${id}`
+}
+
+/**
+ * @summary Delete an override or standalone compliance item
+ */
+export const deleteComplianceOverride = async (id: number, options?: RequestInit): Promise<DeleteComplianceOverride200> => {
+
+  return customFetch<DeleteComplianceOverride200>(getDeleteComplianceOverrideUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteComplianceOverrideMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteComplianceOverride>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteComplianceOverride>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteComplianceOverride'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteComplianceOverride>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteComplianceOverride(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteComplianceOverrideMutationResult = NonNullable<Awaited<ReturnType<typeof deleteComplianceOverride>>>
+
+    export type DeleteComplianceOverrideMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an override or standalone compliance item
+ */
+export const useDeleteComplianceOverride = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteComplianceOverride>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteComplianceOverride>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteComplianceOverrideMutationOptions(options));
     }
 
