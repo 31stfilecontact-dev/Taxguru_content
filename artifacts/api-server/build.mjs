@@ -121,14 +121,13 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
 
   // Bundle Vercel Serverless Function entrypoint to api/index.js
   const apiEntry = path.resolve(artifactDir, "src/handler.ts");
-  const apiDir = path.resolve(artifactDir, "../../api");
+  const apiOut = path.resolve(artifactDir, "../../api/index.js");
   await esbuild({
-    entryPoints: { index: apiEntry },
+    entryPoints: [apiEntry],
     platform: "node",
     bundle: true,
     format: "esm",
-    outdir: apiDir,
-    outExtension: { ".js": ".js" },
+    outfile: apiOut,
     logLevel: "info",
     external: [
       "*.node",
@@ -152,9 +151,6 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
       "pg-native",
     ],
     sourcemap: "inline",
-    plugins: [
-      esbuildPluginPino({ transports: ["pino-pretty"] })
-    ],
     banner: {
       js: `import { createRequire as __bannerCrReq } from 'node:module';
 import __bannerPath from 'node:path';

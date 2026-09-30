@@ -50,7 +50,14 @@ export default function Dashboard() {
     return "GST";
   };
 
-  const { data: articles, isLoading, refetch, isFetching } = useGetArticles(
+  const {
+    data: articles,
+    isLoading,
+    refetch,
+    isFetching,
+    isError: isArticlesError,
+    error: articlesError,
+  } = useGetArticles(
     { date },
     { query: { enabled: false, queryKey: getGetArticlesQueryKey({ date }) } }
   );
@@ -73,15 +80,29 @@ export default function Dashboard() {
       })
     : undefined;
 
-  const handleGatherData = () => {
+  const handleGatherData = async () => {
     if (!date) {
       toast({ title: "Date required", description: "Please select a date.", variant: "destructive" });
       return;
     }
     setActiveCategory(null);
     setSearchQuery("");
-    refetch();
-    refetchSummary();
+    try {
+      const res = await refetch();
+      refetchSummary();
+      if (res.data && res.data.length === 0) {
+        toast({
+          title: "No articles found for this date",
+          description: "Try selecting a recent publication date from the calendar or picker.",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Failed to gather articles",
+        description: err?.message || "Could not connect to the API server. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAddToQueue = (article: Article) => {
@@ -326,7 +347,26 @@ export default function Dashboard() {
             </div>
           )}
 
-          {!articles && !isLoadingData && (
+          {isArticlesError && !isLoadingData && (
+            <div className="h-[280px] flex flex-col items-center justify-center text-center border border-red-500/30 rounded-xl bg-red-950/20 px-4 sm:px-6">
+              <AlertCircle className="w-8 h-8 text-red-400 mb-3" />
+              <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">
+                Unable to Load Articles
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-sm mb-4">
+                {(articlesError as any)?.message || "Could not reach the intelligence feed server. Please check your network or try again."}
+              </p>
+              <button
+                onClick={handleGatherData}
+                className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!articles && !isArticlesError && !isLoadingData && (
             <div className="h-[320px] sm:h-[360px] flex flex-col items-center justify-center text-center border border-dashed border-border/70 rounded-xl bg-card/30 px-4 sm:px-6">
               <Search className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground mb-3 opacity-40" />
               <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">
