@@ -118,6 +118,54 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     `,
     },
   });
+
+  // Bundle Vercel Serverless Function entrypoint to api/index.js
+  const apiEntry = path.resolve(artifactDir, "src/handler.ts");
+  const apiDir = path.resolve(artifactDir, "../../api");
+  await esbuild({
+    entryPoints: { index: apiEntry },
+    platform: "node",
+    bundle: true,
+    format: "esm",
+    outdir: apiDir,
+    outExtension: { ".js": ".js" },
+    logLevel: "info",
+    external: [
+      "*.node",
+      "sharp",
+      "better-sqlite3",
+      "sqlite3",
+      "canvas",
+      "bcrypt",
+      "argon2",
+      "fsevents",
+      "re2",
+      "farmhash",
+      "xxhash-addon",
+      "bufferutil",
+      "utf-8-validate",
+      "ssh2",
+      "cpu-features",
+      "dtrace-provider",
+      "isolated-vm",
+      "lightningcss",
+      "pg-native",
+    ],
+    sourcemap: "inline",
+    plugins: [
+      esbuildPluginPino({ transports: ["pino-pretty"] })
+    ],
+    banner: {
+      js: `import { createRequire as __bannerCrReq } from 'node:module';
+import __bannerPath from 'node:path';
+import __bannerUrl from 'node:url';
+
+globalThis.require = __bannerCrReq(import.meta.url);
+globalThis.__filename = __bannerUrl.fileURLToPath(import.meta.url);
+globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
+    `,
+    },
+  });
 }
 
 buildAll().catch((err) => {
